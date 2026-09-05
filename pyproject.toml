@@ -12,6 +12,21 @@ dependencies = []
 [project.scripts]
 llmforge-env = "llmforge.environment:main"
 
+[project.optional-dependencies]
+gpu = [
+    "torch==2.13.0; sys_platform == 'linux'",
+]
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu130", extra = "gpu" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
 [build-system]
 requires = ["uv_build>=0.12.10,<0.13.0"]
 build-backend = "uv_build"
