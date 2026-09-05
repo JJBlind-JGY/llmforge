@@ -9,6 +9,7 @@ import json
 import os
 import platform
 import re
+import shutil
 import subprocess
 from datetime import UTC, datetime
 from io import StringIO
@@ -16,6 +17,13 @@ from pathlib import Path
 from typing import Any
 
 from llmforge import __version__
+
+_ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+
+
+def _strip_ansi(text: str) -> str:
+    """Remove ANSI terminal escape sequences."""
+    return _ANSI_ESCAPE_RE.sub("", text)
 
 
 def _run_command(args: list[str], timeout: float = 5.0) -> str | None:
@@ -96,14 +104,14 @@ def _parse_nvidia_smi_banner(text: str) -> tuple[str | None, str | None]:
 
 
 def _parse_gpu_query(text: str) -> list[dict[str, Any]]:
-    """Parse CSV output produced by nvidia-smi --query-gpu."""
+    """Parse GPU metadata from nvidia-smi CSV output."""
     devices: list[dict[str, Any]] = []
 
-    for row in csv.reader(StringIO(text)):
-        if len(row) != 4:
+    for index, row in enumerate(csv.reader(StringIO(text))):
+        if len(row) != 3:
             continue
 
-        index, name, memory_mib, pci_bus_id = (value.strip() for value in row)
+        name, memory_mib, pci_bus_id = (value.strip() for value in row)
 
         try:
             memory_value = int(float(memory_mib))
@@ -112,7 +120,7 @@ def _parse_gpu_query(text: str) -> list[dict[str, Any]]:
 
         devices.append(
             {
-                "index": int(index),
+                "index": index,
                 "name": name,
                 "memory_total_mib": memory_value,
                 "pci_bus_id": pci_bus_id,
@@ -151,12 +159,15 @@ def _collect_gpu_metadata() -> dict[str, Any]:
     query = _run_command(
         [
             "nvidia-smi",
-            "--query-gpu=index,name,memory.total,pci.bus_id",
-            "--format=csv,noheadr,nounits",
+            "--query-gpu=name,memory.total,pci.bus_id",
+            "--format=csv,noheader,nounits",
         ]
     )
 
     topology = _run_command(["nvidia-smi", "topo", "-m"])
+
+    if topology is not None:
+        topology = _strip_ansi(topology)
 
     return {
         "nvidia_smi_available": True,
@@ -210,10 +221,35 @@ def _collect_pytorch() -> dict[str, Any]:
     }
 
 
+def _first_line(text: str | None) -> str | None:
+    if not text:
+        return None
+
+    return text.splitlines()[0].strip()
+
+
+def _collect_build_toolchain() -> dict[str, Any]:
+    """Collect build toolchain metadata relevant to native extensions."""
+    libc_name, libc_version = platform.libc_ver()
+
+    return {
+        "cuda_home": os.environ.get("CUDA_HOME"),
+        "nvcc_path": shutil.which("nvcc"),
+        "gcc": _first_line(_run_command(["gcc", "--version"])),
+        "gxx": _first_line(_run_command(["g++", "--version"])),
+        "cmake": _first_line(_run_command(["cmake", "--version"])),
+        "ninja": _first_line(_run_command(["ninja", "--version"])),
+        "libc": {
+            "name": libc_name or None,
+            "version": libc_version or None,
+        },
+    }
+
+
 def collect_environment(role: str = "other") -> dict[str, Any]:
     """Collect a privacy-aware environment fingerprint."""
     return {
-        "schema_version": "1",
+        "schema_version": "2",
         "generated_at_utc": datetime.now(UTC).isoformat(),
         "role": role,
         "project": {
@@ -237,6 +273,7 @@ def collect_environment(role: str = "other") -> dict[str, Any]:
             "git": _run_command(["git", "--version"]),
             "uv": _run_command(["uv", "--version"]),
         },
+        "build_toolchain": _collect_build_toolchain(),
         "gpu": _collect_gpu_metadata(),
         "cuda_toolkit": _collect_cuda_toolkit(),
         "pytorch": _collect_pytorch(),
