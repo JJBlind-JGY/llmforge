@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+
+# Test / lint caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+build/
+dist/
+*.so
+*.dll
+*.pyd
+
+# Local experiment artifacts
+artifacts/*
+!artifacts/.gitkeep
+
+# Profiling outputs
+*.nsys-rep
+*.ncu-rep
+
+# Logs
+*.log
