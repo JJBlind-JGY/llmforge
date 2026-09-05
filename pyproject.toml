@@ -14,6 +14,7 @@ llmforge-env = "llmforge.environment:main"
 
 [project.optional-dependencies]
 gpu = [
+    "numpy>=2.0,<3; sys_platform == 'linux'",
     "torch==2.13.0; sys_platform == 'linux'",
 ]
 
