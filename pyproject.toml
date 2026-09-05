@@ -9,6 +9,9 @@ authors = [
 requires-python = ">=3.12,<3.13"
 dependencies = []
 
+[project.scripts]
+llmforge-env = "llmforge.environment:main"
+
 [build-system]
 requires = ["uv_build>=0.12.10,<0.13.0"]
 build-backend = "uv_build"
