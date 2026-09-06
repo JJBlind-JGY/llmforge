@@ -87,7 +87,7 @@ def main() -> None:
             "cpu_synchronized": synchronized_stats.to_dict(),
             "cuda_event": event_stats.to_dict(),
             "torch_benchmark": {
-                "median_ms": torch_measurement.median_ms * 1000.0,
+                "median_ms": torch_measurement.median * 1000.0,
             },
             "cuda_event_effective_tflops": event_tflops,
         },
