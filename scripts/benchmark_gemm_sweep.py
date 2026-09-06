@@ -15,7 +15,7 @@ from llmforge.environment import collect_environment
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--size", type=int, nargs="+", default=[512, 1024, 2048, 4096, 8192]
+        "--sizes", type=int, nargs="+", default=[512, 1024, 2048, 4096, 8192]
     )
     parser.add_argument("--warmups", type=int, default=20)
     parser.add_argument("--iterations", type=int, default=50)
@@ -35,7 +35,7 @@ def main() -> None:
         )
 
     results = []
-    for size in args.size:
+    for size in args.sizes:
         print(f"Running GEMM shape {size}x{size}x{size}")
         result = run_square_gemm(size, args.warmups, args.iterations)
         results.append(result)
