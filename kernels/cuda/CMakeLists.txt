@@ -16,5 +16,5 @@ add_executable(
 target_compile_options(
     llmforge_vector_add
     PRIVATE
-    $<$<COMPILE_LANGUAGE:CUDA>:-03>
+    $<$<COMPILE_LANGUAGE:CUDA>:-O3>
 )
