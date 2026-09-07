@@ -3,17 +3,25 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 import torch
 
 from llmforge.benchmark.cuda_timer import measure_cuda_events, warmup
+from llmforge.benchmark.experiment import create_run_directory, write_json
 from llmforge.benchmark.gemm import gemm_flops
+from llmforge.benchmark.guard import validate_formal_benchmark
 from llmforge.benchmark.statistics import summarize_ms
+from llmforge.environment import collect_environment
 
 
 def run_gemmm(
-    size: int, dtype: torch.dtype, iterations: int, warmups: int
+    size: int,
+    dtype: torch.dtype,
+    iterations: int,
+    warmups: int,
 ) -> tuple[float, float]:
+    """Run GEMM and return (median_ms, tflops)."""
     a = torch.randn(size, size, device="cuda", dtype=dtype)
     b = torch.randn(size, size, device="cuda", dtype=dtype)
     out = torch.empty_like(a)
@@ -35,11 +43,18 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--size", type=int, default=4096)
     parser.add_argument("--iterations", type=int, default=50)
-
+    parser.add_argument(
+        "--output-root",
+        type=Path,
+        default=Path("artifacts/benchmarks"),
+    )
     args = parser.parse_args()
 
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is not available.")
+
+    environment = collect_environment(role="gpu-server")
+    validate_formal_benchmark(environment=environment)
 
     cases = []
 
@@ -48,7 +63,7 @@ def main() -> None:
     latency, tflops = run_gemmm(args.size, torch.float32, args.iterations, 20)
     cases.append(("fp32_ieee", latency, tflops))
 
-    # TF32 single-precision float
+    # TF32
     torch.backends.cuda.matmul.fp32_precision = "tf32"
     latency, tflops = run_gemmm(args.size, torch.float32, args.iterations, 20)
     cases.append(("tf32", latency, tflops))
@@ -59,11 +74,41 @@ def main() -> None:
     cases.append(("bf16", latency, tflops))
 
     print(f"{'Mode':<16}, {'Latency(ms)':>14}, {'TFLOPS':>14}")
-
     print("-" * 44)
-
     for mode, latency, tflops in cases:
         print(f"{mode:<16}, {latency:>14.4f}, {tflops:>14.2f}")
+
+    results = [
+        {
+            "mode": mode,
+            "latency_ms": latency,
+            "effective_tflops": tflops,
+        }
+        for mode, latency, tflops in cases
+    ]
+
+    payload = {
+        "experiment": "gemm_precision_sweep",
+        "config": {
+            "size": args.size,
+            "iterations": args.iterations,
+            "warmups": 20,
+        },
+        "results": results,
+        "environment": environment,
+    }
+
+    git_commit = environment["project"]["git"]["commit"]
+    run_directory = create_run_directory(
+        args.output_root,
+        "precision_sweep",
+        git_commit,
+    )
+
+    result_path = run_directory / "result.json"
+    write_json(result_path, payload)
+
+    print(f"\n[Artifact saved] {result_path}")
 
 
 if __name__ == "__main__":
