@@ -153,11 +153,11 @@ int main(int argc, char** argv) {
     const double bytes = static_cast<double>(elements) * sizeof(float) * 3.0;
     const double bandwidth_gbps = bytes / (median_ms * 1e-3) / 1e9;
 
-    std::cout << "elements=" << elements << endl;
-    std::cout << "block_size=" << block_size << endl;
-    std::cout << "median_ms=" << median_ms << endl;
-    std::cout << "bandwidth_gbps=" << bandwidth_gbps << endl;
-    std::cout << "correct=true" << endl;
+    std::cout << "elements=" << elements << '\n';
+    std::cout << "block_size=" << block_size << '\n';
+    std::cout << "median_ms=" << median_ms << '\n';
+    std::cout << "bandwidth_gbps=" << bandwidth_gbps << '\n';
+    std::cout << "correct=true" << '\n';
 
     return 0;
 }
