@@ -8,7 +8,7 @@ CUDA_HOST_CXX="${CUDA_HOST_CXX:-$(command -v g++-11 || true)}"
 BUILD_DIR="${BUILD_DIR:-.build/cuda}"
 BUILD_JOBS="${BUILD_JOBS:-$(nproc)}"
 
-if [[ ! -x "$(CUDA_ROOT)/bin/nvcc" ]]; then
+if [[ ! -x "${CUDA_ROOT}/bin/nvcc" ]]; then
     echo "CUDA compiler not found: ${CUDA_ROOT}/bin/nvcc"
     exit 1
 fi
