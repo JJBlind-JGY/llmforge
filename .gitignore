@@ -21,6 +21,7 @@ venv/
 Thumbs.db
 
 # Build artifacts
+.build/
 build/
 dist/
 *.so
