@@ -57,9 +57,9 @@ def main() -> None:
         print(
             f"{elements:>12}, {size_mib:>12.1f}, {stats.median_ms:>14.4f}, {bandwidth:>12.2f}"
         )
-        print(
-            f"FP32 vector-add arithmetic intensity: {vector_add_arithmetic_intensity(x.element_size()):.4f} FLOP/Byte"
-        )
+    print(
+        f"FP32 vector-add arithmetic intensity: {vector_add_arithmetic_intensity(x.element_size()):.4f} FLOP/Byte"
+    )
 
 
 if __name__ == "__main__":
