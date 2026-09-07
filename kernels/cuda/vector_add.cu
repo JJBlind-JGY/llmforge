@@ -132,6 +132,48 @@ float benchmark_vector_add(std::size_t n, int block_size, int warmups, int itera
 }
 
 
+void print_build_and_device_info(int block_size) {
+    cudaDeviceProp properties{};
+
+    CUDA_CHECK(cudaGetDeviceProperties(&properties, 0));
+
+    int active_blocks_per_sm = 0;
+
+    CUDA_CHECK(cudaOccupancyMaxActiveBlocksPerMultiprocessor(&active_blocks_per_sm, vector_add_kernel, block_size, 0));
+
+    const int warps_per_block = (block_size + properties.warpSize - 1) / properties.warpSize;
+    const int active_warps_per_sm = active_blocks_per_sm * warps_per_block;
+    const int max_warps_per_sm = properties.maxThreadsPerMultiProcessor / properties.warpSize;
+    
+    const double occupancy = 100.0 * static_cast<double>(active_warps_per_sm) / max_warps_per_sm;
+
+    int cuda_runtime_version = 0;
+    CUDA_CHECK(cudaRuntimeGetVersion(&cuda_runtime_version));
+
+    std::cout << "device_name=" << properties.name << '\n';
+    std::cout << "compute_capability=" << properties.major << '.' << properties.minor << '\n';
+    std::cout << "sm_count=" << properties.multiProcessorCount << '\n';
+    std::cout << "warp_size=" << properties.warpSize << '\n';
+    std::cout << "max_threads_per_block=" << properties.maxThreadsPerBlock << '\n';
+    std::cout << "max_threads_per_sm=" << properties.maxThreadsPerMultiProcessor << '\n';
+    std::cout << "warps_per_block=" << warps_per_block << '\n';
+    std::cout << "active_blocks_per_sm=" << active_blocks_per_sm << '\n';
+    std::cout << "active_warps_per_sm=" << active_warps_per_sm << '\n';
+    std::cout << "max_warps_per_sm=" << max_warps_per_sm << '\n';
+    std::cout << "theoretical_occupancy_pct=" << occupancy << '\n';
+    std::cout << "l2_cache_bytes=" << properties.l2CacheSize << '\n';
+    std::cout << "nvcc_version=" << __CUDACC_VER_MAJOR__ << '.' << __CUDACC_VER_MINOR__ << '\n';
+    
+    #ifdef __GNUC__
+    std::cout << "host_gcc_version=" << __GNUC__ << '.' << __GNUC_MINOR__ << '.' << __GNUC_PATCHLEVEL__ << '\n';
+    #endif
+
+    std::cout << "compiled_cuda_arch=" << LLMFORGE_CUDA_ARCH << '\n';
+    std::cout << "cuda_runtime_version_raw=" << cuda_runtime_version << '\n';
+}
+
+
+
 int main(int argc, char** argv) {
     std::size_t elements = static_cast<std::size_t>(1) << 27;
 
@@ -146,6 +188,8 @@ int main(int argc, char** argv) {
     if (argc >= 3) {
         block_size = std::stoi(argv[2]);
     }
+
+    print_build_and_device_info(block_size);
 
     verify_vector_add(block_size);
 

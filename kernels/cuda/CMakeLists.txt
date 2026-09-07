@@ -18,3 +18,9 @@ target_compile_options(
     PRIVATE
     $<$<COMPILE_LANGUAGE:CUDA>:-O3>
 )
+
+target_compile_definitions(
+    llmforge_vecctor_add
+    PRIVATE
+    LLMFORGE_CUDA_ARCH="${CMAKE_CUDA_ARCHITECTURES}"
+)
