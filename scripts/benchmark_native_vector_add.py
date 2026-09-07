@@ -8,7 +8,7 @@ from pathlib import Path
 
 from llmforge.benchmark.experiment import create_run_directory, write_json
 from llmforge.benchmark.guard import validate_formal_benchmark
-from llmforge.benchmark.native import parse_benchmark_output
+from llmforge.benchmark.native import parse_key_value_output
 from llmforge.environment import collect_environment
 
 
@@ -45,7 +45,7 @@ def main() -> None:
             text=True,
         )
 
-        result = parse_benchmark_output(completed.stdout)
+        result = parse_key_value_output(completed.stdout)
 
         results.append(result)
 
