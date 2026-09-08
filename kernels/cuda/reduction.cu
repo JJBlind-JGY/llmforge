@@ -123,7 +123,7 @@ float benchmark_reduction(const std::string& variant, std::size_t n, int block_s
     }
     CUDA_CHECK(cudaDeviceSynchronize());
 
-    cudaEvent_t start{}, stop{};
+    cudaEvent_t start, stop;
     CUDA_CHECK(cudaEventCreate(&start));
     CUDA_CHECK(cudaEventCreate(&stop));
 
@@ -135,7 +135,8 @@ float benchmark_reduction(const std::string& variant, std::size_t n, int block_s
         CUDA_CHECK(cudaEventRecord(start));
         launch_reduction(variant, input, output, n, block_size);
         CUDA_CHECK(cudaEventRecord(stop));
-
+        CUDA_CHECK(cudaEventSynchronize(stop));
+        
         float elapsed_ms = 0.0f;
         CUDA_CHECK(cudaEventElapsedTime(&elapsed_ms, start, stop));
         samples.push_back(elapsed_ms);
