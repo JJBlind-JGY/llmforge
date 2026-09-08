@@ -19,7 +19,12 @@ def main() -> None:
     )
     parser.add_argument("--elements", type=int, default=2**24)
     parser.add_argument("--block-size", type=int, default=256)
-    parser.add_argument("--variants", type=str, nargs="+", default=["atomic", "shared"])
+    parser.add_argument(
+        "--variants",
+        type=str,
+        nargs="+",
+        default=["atomic", "shared_interleaved", "shared", "warp"],
+    )
     parser.add_argument("--warmups", type=int, default=3)
     parser.add_argument("--iterations", type=int, default=10)
     parser.add_argument(
@@ -52,31 +57,55 @@ def main() -> None:
         result = parse_key_value_output(completed.stdout)
         results.append(result)
 
-    atomic_latency = float(results[0]["median_ms"])
+    latency = {str(result["variant"]): float(result["median_ms"]) for result in results}
+    atomic_latency = latency["atomic"]
+    shared_latency = latency["shared"]
+    warp_latency = latency["warp"]
+    shared_interleaved_latency = latency["shared_interleaved"]
 
     print(
         f"{'Variant':<12}"
         f"{'Latency(ms)':>14}"
-        f"{'GB/s':>12}"
+        f"{'Useful GB/s':>12}"
         f"{'Atomic Ops':>16}"
-        f"{'Speedup':>12}"
+        f"{'vs Atomic':>12}"
+        f"{'vs Shared':>12}"
+        f"{'vs Warp':>12}"
+        f"{'vs Shared Interleaved':>12}"
     )
 
-    print("-" * 66)
+    print("-" * 88)
 
     for result in results:
         latency = float(result["median_ms"])
 
-        speedup = atomic_latency / latency
+        speedup_atomic = (
+            atomic_latency / latency if atomic_latency is not None else None
+        )
+        speedup_shared = (
+            shared_latency / latency if shared_latency is not None else None
+        )
+        speedup_warp = warp_latency / latency if warp_latency is not None else None
+        speedup_shared_interleaved = (
+            shared_interleaved_latency / latency
+            if shared_interleaved_latency is not None
+            else None
+        )
 
-        result["speedup_vs_atomic"] = speedup
+        result["speedup_vs_atomic"] = speedup_atomic
+        result["speedup_vs_shared"] = speedup_shared
+        result["speedup_vs_warp"] = speedup_warp
+        result["speedup_vs_shared_interleaved"] = speedup_shared_interleaved
 
         print(
             f"{result['variant']!s:<12}"
             f"{latency:>14.4f}"
             f"{float(result['useful_input_bandwidth_gbps']):>12.2f}"
             f"{int(result['global_atomic_updates']):>16}"
-            f"{speedup:>12.2f}x"
+            f"{speedup_atomic:>12.2f}x"
+            f"{speedup_shared:>12.2f}x"
+            f"{speedup_warp:>12.2f}x"
+            f"{speedup_shared_interleaved:>12.2f}x"
         )
 
     commit = environment["project"]["git"]["commit"]

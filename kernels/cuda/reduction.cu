@@ -55,6 +55,67 @@ __global__ void reduce_shared_kernel(const float* input, float* output, std::siz
 }
 
 
+// 效率较低，出现Bank Conflict
+__global__ void reduce_shared_interleaved_kernel(const float* input, float* output, std::size_t n) {
+    extern __shared__ float shared[];
+    const unsigned int tid = threadIdx.x;
+    const std::size_t index = static_cast<std::size_t>(blockIdx.x) * blockDim.x + tid;
+
+    shared[tid] = index < n ? input[index] : 0.0f;
+    __syncthreads();
+
+    for (unsigned int stride = 1; stride < blockDim.x; stride <<= 1) {
+        const unsigned int shared_index = 2 * stride * tid;
+        if (shared_index < blockDim.x) {
+            shared[shared_index] += shared[shared_index + stride];
+        }
+        __syncthreads();
+    }
+
+    if (tid == 0) {
+        atomicAdd(output, shared[0]);
+    }
+}
+
+
+__device__ __forceinline__
+float warp_reduce_sum(float value) {
+    constexpr unsigned int full_mask = 0xffffffffu;
+    for (int offset = warpSize / 2; offset > 0; offset >>= 1) {
+        value += __shfl_down_sync(full_mask, value, offset);
+    }
+    return value;
+}
+
+
+__global__ void reduce_warp_kernel(const float* input, float* output, std::size_t n) {
+    __shared__ float warp_sums[32];
+    const unsigned int tid = threadIdx.x;
+    const unsigned int lane = tid & 31u;
+    const unsigned int warp_id = tid >> 5;
+    const std::size_t index = static_cast<std::size_t>(blockIdx.x) * blockDim.x + tid;
+    float value = index < n ? input[index] : 0.0f;
+
+    value = warp_reduce_sum(value);
+
+    if (lane == 0) {
+        warp_sums[warp_id] = value;
+    }
+    __syncthreads();
+
+    if (warp_id == 0) {
+        const unsigned int warp_count = (blockDim.x + warpSize - 1) / warpSize;
+        float block_sum = lane < warp_count ? warp_sums[lane] : 0.0f;
+        block_sum = warp_reduce_sum(block_sum);
+
+        if (lane == 0) {
+            atomicAdd(output, block_sum);
+        }
+    }
+}
+
+
+
 void launch_reduction(const std::string& variant, const float* input, float* output, std::size_t n, int block_size) {
     const int blocks = static_cast<int>((n + block_size - 1) / block_size);
     
@@ -63,9 +124,20 @@ void launch_reduction(const std::string& variant, const float* input, float* out
         return;
     }
 
-    if (variant == "shared") {
+    if (variant == "shared_interleaved") {
+        const std::size_t shared_bytes = static_cast<std::size_t>(block_size) * sizeof(float);
+        reduce_shared_interleaved_kernel<<<blocks, block_size, shared_bytes>>>(input, output, n);
+        return;
+    }
+
+    if (variant == "shared" || variant == "shared_sequential") {
         const std::size_t shared_bytes = static_cast<std::size_t>(block_size) * sizeof(float);
         reduce_shared_kernel<<<blocks, block_size, shared_bytes>>>(input, output, n);
+        return;
+    }
+
+    if (variant == "warp") {
+        reduce_warp_kernel<<<blocks, block_size>>>(input, output, n);
         return;
     }
 
@@ -229,8 +301,8 @@ int main(int argc, char** argv) {
         iterations = std::stoi(argv[5]);
     }
 
-    if (!is_power_of_two(block_size) || block_size > 1024) {
-        throw std::invalid_argument("block_size must be a power of two and at most 1024.");
+    if (!is_power_of_two(block_size) || block_size > 1024 || block_size < 32) {
+        throw std::invalid_argument("block_size must be a power of two between 1024 and at least 32.");
     }
 
     // ============================================================
