@@ -82,7 +82,7 @@ void verify_reduction(const std::string& variant, int block_size) {
     CUDA_CHECK(cudaMalloc(&input, n * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&output, sizeof(float)));
 
-    const int blocks = static_cast<int>((n + block_size -1) / block_size);
+    const int blocks = static_cast<int>((n + block_size - 1) / block_size);
     fill_kernel<<<blocks, block_size>>>(input, 1.0f, n);
     CUDA_CHECK(cudaMemset(output, 0, sizeof(float)));
 
@@ -113,7 +113,7 @@ float benchmark_reduction(const std::string& variant, std::size_t n, int block_s
     CUDA_CHECK(cudaMalloc(&input, input_bytes));
     CUDA_CHECK(cudaMalloc(&output, sizeof(float)));
 
-    const int blocks = static_cast<int>((n + block_size -1) / block_size);
+    const int blocks = static_cast<int>((n + block_size - 1) / block_size);
     fill_kernel<<<blocks, block_size>>>(input, 1.0f, n);
     CUDA_CHECK(cudaDeviceSynchronize());
 
@@ -154,7 +154,50 @@ float benchmark_reduction(const std::string& variant, std::size_t n, int block_s
 
 
 bool is_power_of_two(int value) {
-    return value > 0 && (value & (value -1)) == 0;
+    return value > 0 && (value & (value - 1)) == 0;
+}
+
+
+// ============================================================
+// 【新增】与 vector_add.cu 完全一致的设备信息打印函数
+// ============================================================
+void print_build_and_device_info(int block_size) {
+    cudaDeviceProp properties{};
+
+    CUDA_CHECK(cudaGetDeviceProperties(&properties, 0));
+
+    int active_blocks_per_sm = 0;
+    CUDA_CHECK(cudaOccupancyMaxActiveBlocksPerMultiprocessor(&active_blocks_per_sm, reduce_shared_kernel, block_size, 0));
+
+    const int warps_per_block = (block_size + properties.warpSize - 1) / properties.warpSize;
+    const int active_warps_per_sm = active_blocks_per_sm * warps_per_block;
+    const int max_warps_per_sm = properties.maxThreadsPerMultiProcessor / properties.warpSize;
+    
+    const double occupancy = 100.0 * static_cast<double>(active_warps_per_sm) / max_warps_per_sm;
+
+    int cuda_runtime_version = 0;
+    CUDA_CHECK(cudaRuntimeGetVersion(&cuda_runtime_version));
+
+    std::cout << "device_name=" << properties.name << '\n';
+    std::cout << "compute_capability=" << properties.major << '.' << properties.minor << '\n';
+    std::cout << "sm_count=" << properties.multiProcessorCount << '\n';
+    std::cout << "warp_size=" << properties.warpSize << '\n';
+    std::cout << "max_threads_per_block=" << properties.maxThreadsPerBlock << '\n';
+    std::cout << "max_threads_per_sm=" << properties.maxThreadsPerMultiProcessor << '\n';
+    std::cout << "warps_per_block=" << warps_per_block << '\n';
+    std::cout << "active_blocks_per_sm=" << active_blocks_per_sm << '\n';
+    std::cout << "active_warps_per_sm=" << active_warps_per_sm << '\n';
+    std::cout << "max_warps_per_sm=" << max_warps_per_sm << '\n';
+    std::cout << "theoretical_occupancy_pct=" << occupancy << '\n';
+    std::cout << "l2_cache_bytes=" << properties.l2CacheSize << '\n';
+    std::cout << "nvcc_version=" << __CUDACC_VER_MAJOR__ << '.' << __CUDACC_VER_MINOR__ << '\n';
+    
+    #ifdef __GNUC__
+    std::cout << "host_gcc_version=" << __GNUC__ << '.' << __GNUC_MINOR__ << '.' << __GNUC_PATCHLEVEL__ << '\n';
+    #endif
+
+    std::cout << "compiled_cuda_arch=" << LLMFORGE_CUDA_ARCH << '\n';
+    std::cout << "cuda_runtime_version_raw=" << cuda_runtime_version << '\n';
 }
 
 
@@ -189,6 +232,12 @@ int main(int argc, char** argv) {
         throw std::invalid_argument("block_size must be a power of two and at most 1024.");
     }
 
+    // ============================================================
+    // 【关键修改】与 vector_add.cu 完全对齐：先打印设备信息（强制初始化上下文）
+    // ============================================================
+    print_build_and_device_info(block_size);
+
+    // 现在上下文已建立，后续所有 CUDA 调用都能正常执行
     verify_reduction(variant, block_size);
     const float median_ms = benchmark_reduction(variant, elements, block_size, warmups, iterations);
     const double seconds = median_ms / 1000.0;
@@ -197,7 +246,7 @@ int main(int argc, char** argv) {
     const double reduction_flops = static_cast<double>(elements - 1);
     const double effective_gflops = reduction_flops / seconds / 1e9;
 
-    const std::size_t blocks = (elements + block_size -1) / block_size;
+    const std::size_t blocks = (elements + block_size - 1) / block_size;
     const std::size_t atomic_updates = variant == "atomic" ? elements : blocks;
 
     std::cout << "variant=" << variant << "\n";
