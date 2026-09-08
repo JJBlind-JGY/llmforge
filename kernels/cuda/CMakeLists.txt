@@ -24,3 +24,23 @@ target_compile_definitions(
     PRIVATE
     LLMFORGE_CUDA_ARCH="${CMAKE_CUDA_ARCHITECTURES}"
 )
+
+add_executable(
+    llmforge_reduction
+    reduction.cu
+)
+
+target_compile_options(
+    llmforge_reduction
+    PRIVATE
+    $<$<COMPILE_LANGUAGE:CUDA>:-O3>
+)
+
+target_compile_definitions(
+    llmforge_reduction
+    PRIVATE
+    LLMFORGE_CUDA_ARCH="${CMAKE_CUDA_ARCHITECTURES}"
+)
+
+
+

@@ -1,0 +1,209 @@
+#include<cuda_runtime.h>
+
+#include<algorithm>
+#include<cmath>
+#include<cstddef>
+#include<cstdlib>
+#include<iostream>
+#include<stdexcept>
+#include<string>
+#include<vector>
+
+
+#define CUDA_CHECK(call)                                                \
+    do {                                                                \
+        cudaError_t err = (call);                                       \
+        if (err != cudaSuccess) {                                       \
+            std::cerr << "CUDA error: " << cudaGetErrorString(err)      \
+                << " at " << __FILE__ << ":" << __LINE__ << '\n';       \
+            std::exit(EXIT_FAILURE);                                    \
+        }                                                               \
+    } while (0)
+
+
+__global__ void fill_kernel(float* data, float value, std::size_t n) {
+    const std::size_t index = static_cast<std::size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    if (index < n) {
+        data[index] = value;
+    }
+}
+
+__global__ void reduce_atomic_kernel(const float* input, float* output, std::size_t n) {
+    const std::size_t index = static_cast<std::size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    if (index < n) {
+        atomicAdd(output, input[index]);
+    }
+}
+
+__global__ void reduce_shared_kernel(const float* input, float* output, std::size_t n) {
+    extern __shared__ float shared[];
+    const unsigned int tid = threadIdx.x;
+    const std::size_t index = static_cast<std::size_t>(blockIdx.x) * blockDim.x + tid;
+    shared[tid] = index < n ? input[index] : 0.0f;
+    __syncthreads();
+
+    for (unsigned int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+        if (tid < stride) {
+            shared[tid] += shared[tid + stride];
+        }
+        __syncthreads();
+    }
+
+    if (tid == 0) {
+        atomicAdd(output, shared[0]);
+    }
+}
+
+
+void launch_reduction(const std::string& variant, const float* input, float* output, std::size_t n, int block_size) {
+    const int blocks = static_cast<int>((n + block_size - 1) / block_size);
+    
+    if (variant == "atomic") {
+        reduce_atomic_kernel<<<blocks, block_size>>>(input, output, n);
+        return;
+    }
+
+    if (variant == "shared") {
+        const std::size_t shared_bytes = static_cast<std::size_t>(block_size) * sizeof(float);
+        reduce_shared_kernel<<<blocks, block_size, shared_bytes>>>(input, output, n);
+        return;
+    }
+
+    throw std::invalid_argument("Unknown reduction variant.");
+}
+
+
+void verify_reduction(const std::string& variant, int block_size) {
+    constexpr std::size_t n = 1'000'003;
+    
+    float* input = nullptr;
+    float* output = nullptr;
+
+    CUDA_CHECK(cudaMalloc(&input, n * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&output, sizeof(float)));
+
+    const int blocks = static_cast<int>((n + block_size -1) / block_size);
+    fill_kernel<<<blocks, block_size>>>(input, 1.0f, n);
+    CUDA_CHECK(cudaMemset(output, 0, sizeof(float)));
+
+    launch_reduction(variant, input, output, n, block_size);
+    CUDA_CHECK(cudaGetLastError());
+    CUDA_CHECK(cudaDeviceSynchronize());
+    
+    float actual = 0.0f;
+    CUDA_CHECK(cudaMemcpy(&actual, output, sizeof(float), cudaMemcpyDeviceToHost));
+
+    const float expected = static_cast<float>(n);
+    if (std::fabs(actual - expected) > 0.5f) {
+        std::cerr << "expected=" << expected << "\n";
+        std::cerr << "actual=" << actual << "\n";
+        throw std::runtime_error("Reduction correctness failed.");
+    }
+
+    CUDA_CHECK(cudaFree(input));
+    CUDA_CHECK(cudaFree(output));
+}
+
+
+float benchmark_reduction(const std::string& variant, std::size_t n, int block_size, int warmups, int iterations) {
+    float* input = nullptr;
+    float* output = nullptr;
+
+    const std::size_t input_bytes = n * sizeof(float);
+    CUDA_CHECK(cudaMalloc(&input, input_bytes));
+    CUDA_CHECK(cudaMalloc(&output, sizeof(float)));
+
+    const int blocks = static_cast<int>((n + block_size -1) / block_size);
+    fill_kernel<<<blocks, block_size>>>(input, 1.0f, n);
+    CUDA_CHECK(cudaDeviceSynchronize());
+
+    for (int i = 0; i < warmups; ++i) {
+        CUDA_CHECK(cudaMemset(output, 0, sizeof(float)));
+        launch_reduction(variant, input, output, n, block_size);
+    }
+    CUDA_CHECK(cudaDeviceSynchronize());
+
+    cudaEvent_t start{}, stop{};
+    CUDA_CHECK(cudaEventCreate(&start));
+    CUDA_CHECK(cudaEventCreate(&stop));
+
+    std::vector<float> samples;
+    samples.reserve(iterations);
+
+    for (int i = 0; i < iterations; ++i) {
+        CUDA_CHECK(cudaMemset(output, 0, sizeof(float)));
+        CUDA_CHECK(cudaEventRecord(start));
+        launch_reduction(variant, input, output, n, block_size);
+        CUDA_CHECK(cudaEventRecord(stop));
+
+        float elapsed_ms = 0.0f;
+        CUDA_CHECK(cudaEventElapsedTime(&elapsed_ms, start, stop));
+        samples.push_back(elapsed_ms);
+    }
+
+    CUDA_CHECK(cudaEventDestroy(start));
+    CUDA_CHECK(cudaEventDestroy(stop));
+
+    CUDA_CHECK(cudaFree(input));
+    CUDA_CHECK(cudaFree(output));
+    
+    std::sort(samples.begin(), samples.end());
+
+    return samples[samples.size() / 2];
+}
+
+
+bool is_power_of_two(int value) {
+    return value > 0 && (value & (value -1)) == 0
+}
+
+
+int main(int argc, char** argv) {
+    std::size_t elements = static_cast<std::size_t>(1) << 24;
+    int block_size = 256;
+    std::string variant = "atomic";
+    int warmups = 3;
+    int iterations = 10;
+    
+    if (argc >= 2) {
+        elements = std::stoull(argv[1]);
+    }
+
+    if (argc >= 3) {
+        block_size = std::stoi(argv[2]);
+    }
+
+    if (argc >= 4) {
+        variant = argv[3];
+    }
+
+    if (argc >= 5) {
+        warmups = std::stoi(argv[4]);
+    }
+
+    if (argc >= 6) {
+        iterations = std::stoi(argv[5]);
+    }
+
+    if (!is_power_of_two(block_size) || block_size > 1024) {
+        throw std::invalid_argument("block_size must be a power of two and at most 1024.");
+    }
+
+    verify_reduction(variant, block_size);
+    const float median_ms = benchmark_reduction(variant, elements, block_size, warmups, iterations);
+    const double seconds = median_ms / 1000.0;
+    const double useful_bytes = static_cast<double>(elements) * sizeof(float);
+    const double useful_bandwidth = useful_bytes / seconds / 1e9;
+    const double reduction_flops = static_cast<double>(elements - 1);
+    const double effective_gflops = reduction_flops / seconds / 1e9;
+
+    const std::size_t blocks = (elements + block_size -1) / block_size;
+    const std::size_t atomic_updates = variant == "atomic" ? elements : blocks;
+
+    std::cout << "variant=" << variant << "\n";
+    std::cout << "elements=" << elements << "\n";
+    std::cout << "block_size=" << block_size << "\n";
+    std::cout << "useful_input_bandwidth_gbps=" << useful_bandwidth << "\n";
+    std::cout << "effective_gflops=" << effective_gflops << "\n";
+    std::cout << "global_atomic_updates=" << atomic_updates << "\n";
+}

@@ -13,7 +13,7 @@
         cudaError_t err = (call);                                       \
         if (err != cudaSuccess) {                                       \
             std::cerr << "CUDA error: " << cudaGetErrorString(err)      \
-                << " at " << __FILE__ << ":" << __LINE__ << std::endl;  \
+                << " at " << __FILE__ << ":" << __LINE__ << '\n';       \
             std::exit(EXIT_FAILURE);                                    \
         }                                                               \
     } while (0)
