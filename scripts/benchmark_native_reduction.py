@@ -64,14 +64,14 @@ def main() -> None:
     shared_interleaved_latency = latency["shared_interleaved"]
 
     print(
-        f"{'Variant':<12}"
+        f"{'Variant':<20}"
         f"{'Latency(ms)':>14}"
-        f"{'Useful GB/s':>12}"
+        f"{'Useful GB/s':>14}"
         f"{'Atomic Ops':>16}"
         f"{'vs Atomic':>12}"
         f"{'vs Shared':>12}"
         f"{'vs Warp':>12}"
-        f"{'vs Shared Interleaved':>12}"
+        f"{'vs Interleaved':>16}"
     )
 
     print("-" * 88)
