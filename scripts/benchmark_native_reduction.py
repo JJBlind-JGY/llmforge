@@ -15,7 +15,7 @@ from llmforge.environment import collect_environment
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--binary", type=Path, default=Path("./build/llmforge_reduction")
+        "--binary", type=Path, default=Path("./build/cuda/llmforge_reduction")
     )
     parser.add_argument("--elements", type=int, default=2**24)
     parser.add_argument("--block-size", type=int, default=256)
