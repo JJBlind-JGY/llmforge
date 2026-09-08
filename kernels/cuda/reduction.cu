@@ -154,7 +154,7 @@ float benchmark_reduction(const std::string& variant, std::size_t n, int block_s
 
 
 bool is_power_of_two(int value) {
-    return value > 0 && (value & (value -1)) == 0
+    return value > 0 && (value & (value -1)) == 0;
 }
 
 
