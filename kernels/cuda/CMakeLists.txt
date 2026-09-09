@@ -43,4 +43,19 @@ target_compile_definitions(
 )
 
 
+add_executable(
+    llmforge_matmul
+    matmul.cu
+)
 
+target_compile_options(
+    llmforge_matmul
+    PRIVATE
+    $<$<COMPILE_LANGUAGE:CUDA>:-O3>
+)
+
+target_compile_definitions(
+    llmforge_matmul
+    PRIVATE
+    LLMFORGE_CUDA_ARCH="${CMAKE_CUDA_ARCHITECTURES}"
+)
