@@ -13,7 +13,7 @@ from llmforge.benchmark.experiment import create_run_directory, write_json
 from llmforge.benchmark.guard import validate_formal_benchmark
 from llmforge.benchmark.statistics import summarize_ms
 from llmforge.environment import collect_environment
-from llmforge.kernels.triton.matmul import get_best_matmul_config, matmul_fp32_ieee_into
+from llmforge.kernels.triton.matmul import get_best_matmul_config, matmul_fp32_ieee_into, matmul_bf16_into, get_best_bf16_matmul_config
 
 
 def gemm_tflops(n: int, latency_ms: float) -> float:
@@ -26,6 +26,7 @@ def main() -> None:
     parser.add_argument("--sizes", nargs="+", type=int, default=[512, 1024, 2048, 4096])
     parser.add_argument("--warmups", type=int, default=10)
     parser.add_argument("--iterations", type=int, default=30)
+    parser.add_argument("--precision", choices=["fp32_ieee", "bf16"], default="fp32_ieee")
     parser.add_argument(
         "--output-root", type=Path, default=Path("artifacts/benchmarks")
     )
@@ -34,7 +35,17 @@ def main() -> None:
     environment = collect_environment(role="gpu-server")
     validate_formal_benchmark(environment=environment)
 
-    torch.backends.cuda.matmul.fp32_precision = "ieee"
+    if args.precision == "fp32_ieee":
+        dtype = torch.float32
+        matmul_fn = matmul_fp32_ieee_into
+        get_config_fn = get_best_matmul_config
+        torch.backends.cuda.matmul.fp32_precision = "ieee"
+    else: # bf16
+        dtype = torch.bfloat16
+        matmul_fn = matmul_bf16_into
+        get_config_fn = get_best_bf16_matmul_config
+        torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction = False
+
     torch.manual_seed(0)
 
     results = []
@@ -42,9 +53,9 @@ def main() -> None:
     print("-" * 52)
 
     for n in args.sizes:
-        a = torch.randn((n, n), device="cuda", dtype=torch.float32)
-        b = torch.randn((n, n), device="cuda", dtype=torch.float32)
-        triton_output = torch.empty((n, n), device="cuda", dtype=torch.float32)
+        a = torch.randn((n, n), device="cuda", dtype=dtype)
+        b = torch.randn((n, n), device="cuda", dtype=dtype)
+        triton_output = torch.empty((n, n), device="cuda", dtype=dtype)
         torch_output = torch.empty_like(triton_output)
 
         # First Triton call triggers JIT/autotuning.
