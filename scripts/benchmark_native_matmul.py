@@ -23,7 +23,9 @@ def main() -> None:
     )
     parser.add_argument("--warmups", type=int, default=5)
     parser.add_argument("--iterations", type=int, default=20)
-    parser.add_argument("--output-root", type=Path, default=Path("artifact/benchmarks"))
+    parser.add_argument(
+        "--output-root", type=Path, default=Path("artifacts/benchmarks")
+    )
 
     args = parser.parse_args()
     environment = collect_environment(role="gpu-server")
