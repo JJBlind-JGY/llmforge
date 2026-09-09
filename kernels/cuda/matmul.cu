@@ -75,7 +75,7 @@ void launch_matmul(const std::string& variant, const float* a, const float* b, f
         constexpr int tile = 16;
         const dim3 block(tile, tile);
         const dim3 grid((n + tile - 1) / tile, (n + tile - 1) / tile);
-        matmul_tiled_kernel<<<grid, block>>>(a, b, c, n);
+        matmul_naive_kernel<<<grid, block>>>(a, b, c, n);
         return;
     }
 
