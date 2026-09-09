@@ -70,6 +70,41 @@ Warp register shuffle
 Memory-dominated execution
 ```
 
+## 2. CUDA GEMM
+
+### 2.1 Benchmark
+
+| Variant | N | Latency (ms) | Effective TFLOPS |
+| --- | ---: | ---: | ---: |
+| Naive | 4096 | 24.4531 | 5.62 |
+| Tiled16 | 4096 | 18.7955 | 7.31 |
+| Tiled32 | 4096 | 21.2326 | 6.47 |
+| PyTorch FP32 IEEE | 4096 | 2.5846 | 53.18 |
+
+Shared-memory tiling improved the native CUDA implementation by approximately
+1.30x over the naive kernel.
+
+TILE=32 did not outperform TILE=16 despite providing greater theoretical data
+reuse. Nsight Compute showed that TILE=32 was limited to 66.67% theoretical
+occupancy, while TILE=16 achieved approximately 100% occupancy.
+
+### 2.2 Profiling Observation
+
+The kernels were not limited by off-chip DRAM bandwidth. Nsight Compute
+reported less than 1% DRAM throughput for all three variants.
+
+The naive implementation achieved an 86.20% L1 hit rate, demonstrating that
+hardware caching already recovered substantial reuse that is not represented
+by a source-level global-load model.
+
+Tiled16 shifted reuse toward explicitly managed shared memory and improved
+throughput, but introduced substantial shared-memory/MIO instruction pressure.
+
+The vendor-library FP32 IEEE baseline reached 53.18 TFLOPS, approximately
+7.27x the throughput of Tiled16, illustrating that shared-memory tiling alone
+is only the first level of modern GEMM optimization.
+
+
 
 Benchmark results determine how fast each version runs, while Nsight Compute
 provides evidence explaining why those differences occur
