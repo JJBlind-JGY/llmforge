@@ -105,6 +105,33 @@ The vendor-library FP32 IEEE baseline reached 53.18 TFLOPS, approximately
 is only the first level of modern GEMM optimization.
 
 
+## 3. Triton GEMM
+
+### 3.1 FP32 IEEE Benchmark
+
+| N | Triton TFLOPS | PyTorch TFLOPS | Triton / PyTorch | Best Triton Config |
+| ---: | ---: | ---: | ---: | --- |
+| 512 | 18.48 | 21.85 | 84.6% | 32×64×32, 2 warps, 5 stages |
+| 1024 | 33.29 | 36.79 | 90.5% | 128×64×32, 4 warps, 4 stages |
+| 2048 | 46.67 | 54.65 | 85.4% | 128×64×32, 4 warps, 4 stages |
+| 4096 | 41.57 | 48.67 | 85.4% | 128×64×32, 4 warps, 4 stages |
+
+For N=4096, the Triton implementation reached approximately 5.68x
+the throughput of the project's hand-written CUDA Tiled16 kernel
+(41.57 vs 7.31 TFLOPS).
+
+For N=512, the autotuner selected a smaller 32×64 output tile.
+This produces 128 Triton programs for a 512×512 output, matching
+the GPU's 128 SMs and avoiding the coarse-grained under-utilization
+that would result from larger tiles.
+
+For N>=1024, a 128×64 output tile became viable because the workload
+already exposed sufficient program-level parallelism.
+
+The current search space keeps BLOCK_SIZE_K=32 and GROUP_SIZE_M=8
+fixed, so the experiment should not be interpreted as a global
+optimization over all Triton GEMM parameters.
+
 
 Benchmark results determine how fast each version runs, while Nsight Compute
 provides evidence explaining why those differences occur
