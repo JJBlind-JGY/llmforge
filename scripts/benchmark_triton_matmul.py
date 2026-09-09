@@ -56,8 +56,12 @@ def main() -> None:
         best_config = get_best_matmul_config()
 
         providers = {
-            "triton_ieee": lambda a=a, b=b, triton_output=triton_output: matmul_fp32_ieee_into(a, b, triton_output),
-            "torch_ieee": lambda a=a, b=b, torch_output=torch_output: torch.mm(a, b, out=torch_output),
+            "triton_ieee": lambda a=a, b=b, triton_output=triton_output: (
+                matmul_fp32_ieee_into(a, b, triton_output)
+            ),
+            "torch_ieee": lambda a=a, b=b, torch_output=torch_output: torch.mm(
+                a, b, out=torch_output
+            ),
         }
 
         for provider, operation in providers.items():

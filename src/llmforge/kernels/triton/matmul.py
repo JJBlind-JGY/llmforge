@@ -147,7 +147,9 @@ def matmul_fp32_ieee_into(
         raise ValueError("Current tensors requires contiguous tensors.")
 
     grid = lambda meta: (
-        tl.cdiv(m, meta["BLOCK_SIZE_M"]) * tl.cdiv(n, meta["BLOCK_SIZE_N"])
+        (m + meta["BLOCK_SIZE_M"] - 1) // meta["BLOCK_SIZE_M"],
+        (n + meta["BLOCK_SIZE_N"] - 1) // meta["BLOCK_SIZE_N"],
+        1,
     )
     _matmul_fp32_ieee_kernel[grid](
         a,
