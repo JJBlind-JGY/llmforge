@@ -216,47 +216,104 @@ float benchmark_matmul(const std::string& variant, int n, int warmups, int itera
     return samples[samples.size() / 2];
 }
 
-
-void print_build_and_device_info() {
+void print_matmul_kernel_info(const std::string& variant) {
     cudaDeviceProp properties{};
+
     CUDA_CHECK(cudaGetDeviceProperties(&properties, 0));
+    cudaFuncAttributes attributes{};
 
+    int threads_per_block = 0;
     int active_blocks_per_sm = 0;
-    CUDA_CHECK(cudaOccupancyMaxActiveBlocksPerMultiprocessor(
-        &active_blocks_per_sm,
-        matmul_naive_kernel,
-        256, 
-        0
-    ));
 
-    const int warps_per_block = (256 + properties.warpSize - 1) / properties.warpSize;
-    const int active_warps_per_sm = active_blocks_per_sm * warps_per_block;
-    const int max_warps_per_sm = properties.maxThreadsPerMultiProcessor / properties.warpSize;
-    const double occupancy = 100.0 * static_cast<double>(active_warps_per_sm) / max_warps_per_sm;
+    if (variant == "naive") {
+        threads_per_block = 16 * 16;
+        CUDA_CHECK(cudaFuncGetAttributes(&attributes, matmul_naive_kernel));
+        CUDA_CHECK(cudaOccupancyMaxActiveBlocksPerMultiprocessor(&active_blocks_per_sm, matmul_naive_kernel, threads_per_block, 0));
+    } else if (variant == "tiled16") {
+        threads_per_block = 16 * 16;
+        CUDA_CHECK(cudaFuncGetAttributes(&attributes, matmul_tiled_kernel<16>));
 
-    int cuda_runtime_version = 0;
-    CUDA_CHECK(cudaRuntimeGetVersion(&cuda_runtime_version));
+        CUDA_CHECK(cudaOccupancyMaxActiveBlocksPerMultiprocessor(
+                &active_blocks_per_sm,
+                matmul_tiled_kernel<16>,
+                threads_per_block,
+                0
+            ));
+    } else if (variant == "tiled32") {
+        threads_per_block = 32 * 32;
 
-    std::cout << "device_name=" << properties.name << '\n';
-    std::cout << "compute_capability=" << properties.major << '.' << properties.minor << '\n';
-    std::cout << "sm_count=" << properties.multiProcessorCount << '\n';
-    std::cout << "warp_size=" << properties.warpSize << '\n';
-    std::cout << "max_threads_per_block=" << properties.maxThreadsPerBlock << '\n';
-    std::cout << "max_threads_per_sm=" << properties.maxThreadsPerMultiProcessor << '\n';
-    std::cout << "warps_per_block=" << warps_per_block << '\n';
-    std::cout << "active_blocks_per_sm=" << active_blocks_per_sm << '\n';
-    std::cout << "active_warps_per_sm=" << active_warps_per_sm << '\n';
-    std::cout << "max_warps_per_sm=" << max_warps_per_sm << '\n';
-    std::cout << "theoretical_occupancy_pct=" << occupancy << '\n';
-    std::cout << "l2_cache_bytes=" << properties.l2CacheSize << '\n';
-    std::cout << "nvcc_version=" << __CUDACC_VER_MAJOR__ << '.' << __CUDACC_VER_MINOR__ << '\n';
-    #ifdef __GNUC__
-    std::cout << "host_gcc_version=" << __GNUC__ << '.' << __GNUC_MINOR__ << '.' << __GNUC_PATCHLEVEL__ << '\n';
-    #endif
-    std::cout << "compiled_cuda_arch=" << LLMFORGE_CUDA_ARCH << '\n';
-    std::cout << "cuda_runtime_version_raw=" << cuda_runtime_version << '\n';
+        CUDA_CHECK(
+            cudaFuncGetAttributes(
+                &attributes,
+                matmul_tiled_kernel<32>
+            )
+        );
+
+        CUDA_CHECK(cudaOccupancyMaxActiveBlocksPerMultiprocessor(
+                &active_blocks_per_sm,
+                matmul_tiled_kernel<32>,
+                threads_per_block,
+                0
+            ));
+    } else {
+        throw std::invalid_argument(
+            "Unknown MatMul variant."
+        );
+    }
+
+    const int warps_per_block =
+        (
+            threads_per_block
+            + properties.warpSize
+            - 1
+        )
+        / properties.warpSize;
+
+    const int active_warps_per_sm =
+        active_blocks_per_sm
+        * warps_per_block;
+
+    const int max_warps_per_sm =
+        properties.maxThreadsPerMultiProcessor
+        / properties.warpSize;
+
+    const double theoretical_occupancy =
+        100.0
+        * static_cast<double>(
+            active_warps_per_sm
+        )
+        / max_warps_per_sm;
+
+    std::cout
+        << "kernel_threads_per_block="
+        << threads_per_block
+        << '\n';
+
+    std::cout
+        << "kernel_registers_per_thread="
+        << attributes.numRegs
+        << '\n';
+
+    std::cout
+        << "kernel_static_shared_bytes="
+        << attributes.sharedSizeBytes
+        << '\n';
+
+    std::cout
+        << "kernel_active_blocks_per_sm="
+        << active_blocks_per_sm
+        << '\n';
+
+    std::cout
+        << "kernel_active_warps_per_sm="
+        << active_warps_per_sm
+        << '\n';
+
+    std::cout
+        << "kernel_theoretical_occupancy_pct="
+        << theoretical_occupancy
+        << '\n';
 }
-
 
 int main(int argc, char** argv) {
     int n = 1024;                  
@@ -284,7 +341,7 @@ int main(int argc, char** argv) {
         throw std::invalid_argument("variant must be naive, tiled16, or tiled32.");
     }
 
-    print_build_and_device_info();
+    print_matmul_kernel_info(variant);
 
     std::cout << "\n--- Verifying correctness ---\n";
     verify_matmul(variant);
