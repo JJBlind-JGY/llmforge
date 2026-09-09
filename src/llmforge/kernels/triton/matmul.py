@@ -83,8 +83,8 @@ def _matmul_fp32_ieee_kernel(
     pid = tl.program_id(axis=0)
     num_pid_m = tl.cdiv(M, BLOCK_SIZE_M)
     num_pid_n = tl.cdiv(N, BLOCK_SIZE_N)
-    num_pid_in_group = GROUP_SIZE_M * num_pid_n
 
+    num_pid_in_group = GROUP_SIZE_M * num_pid_n
     group_id = pid // num_pid_in_group
     first_pid_m = group_id * GROUP_SIZE_M
     group_size_m = min(num_pid_m - first_pid_m, GROUP_SIZE_M)
@@ -99,7 +99,7 @@ def _matmul_fp32_ieee_kernel(
     a_ptrs = a_ptr + offs_m[:, None] * stride_am + offs_k[None, :] * stride_ak
     b_ptrs = b_ptr + offs_k[:, None] * stride_bk + offs_n[None, :] * stride_bn
 
-    accumlator = tl.zeros((BLOCK_SIZE_M, BLOCK_SIZE_N), dtype=tl.float32)
+    accumulator = tl.zeros((BLOCK_SIZE_M, BLOCK_SIZE_N), dtype=tl.float32)
 
     for k_block in range(tl.cdiv(K, BLOCK_SIZE_K)):
         current_k = k_block * BLOCK_SIZE_K + offs_k
@@ -110,14 +110,14 @@ def _matmul_fp32_ieee_kernel(
         a = tl.load(a_ptrs, a_mask, other=0.0)
         b = tl.load(b_ptrs, b_mask, other=0.0)
 
-        accumlator = tl.dot(a, b, accumlator, input_precision="ieee")
+        accumulator = tl.dot(a, b, accumulator, input_precision="ieee")
 
         a_ptrs += BLOCK_SIZE_K * stride_ak
         b_ptrs += BLOCK_SIZE_K * stride_bk
 
     c_ptrs = c_ptr + offs_m[:, None] * stride_cm + offs_n[None, :] * stride_cn
     c_mask = (offs_m[:, None] < M) & (offs_n[None, :] < N)
-    tl.store(c_ptrs, accumlator, mask=c_mask)
+    tl.store(c_ptrs, accumulator, mask=c_mask)
 
 
 def matmul_fp32_ieee_into(
@@ -146,10 +146,15 @@ def matmul_fp32_ieee_into(
     if not a.is_contiguous() or not b.is_contiguous() or not output.is_contiguous():
         raise ValueError("Current tensors requires contiguous tensors.")
 
+    # IMPORTANT:
+    # This is host-side Python code, so use triton.cdiv,
+    # not tl.cdiv.
+    #
+    # The kernel reads only tl.program_id(axis=0),
+    # therefore all output tiles must be flattened
+    # into one 1-D program grid.
     grid = lambda meta: (
-        (m + meta["BLOCK_SIZE_M"] - 1) // meta["BLOCK_SIZE_M"],
-        (n + meta["BLOCK_SIZE_N"] - 1) // meta["BLOCK_SIZE_N"],
-        1,
+        triton.cdiv(m, meta["BLOCK_SIZE_M"]) * triton.cdiv(n, meta["BLOCK_SIZE_N"]),
     )
     _matmul_fp32_ieee_kernel[grid](
         a,
