@@ -13,7 +13,12 @@ from llmforge.benchmark.experiment import create_run_directory, write_json
 from llmforge.benchmark.guard import validate_formal_benchmark
 from llmforge.benchmark.statistics import summarize_ms
 from llmforge.environment import collect_environment
-from llmforge.kernels.triton.matmul import get_best_matmul_config, matmul_fp32_ieee_into, matmul_bf16_into, get_best_bf16_matmul_config
+from llmforge.kernels.triton.matmul import (
+    get_best_bf16_matmul_config,
+    get_best_matmul_config,
+    matmul_bf16_into,
+    matmul_fp32_ieee_into,
+)
 
 
 def gemm_tflops(n: int, latency_ms: float) -> float:
@@ -26,7 +31,9 @@ def main() -> None:
     parser.add_argument("--sizes", nargs="+", type=int, default=[512, 1024, 2048, 4096])
     parser.add_argument("--warmups", type=int, default=10)
     parser.add_argument("--iterations", type=int, default=30)
-    parser.add_argument("--precision", choices=["fp32_ieee", "bf16"], default="fp32_ieee")
+    parser.add_argument(
+        "--precision", choices=["fp32_ieee", "bf16"], default="fp32_ieee"
+    )
     parser.add_argument(
         "--output-root", type=Path, default=Path("artifacts/benchmarks")
     )
@@ -40,7 +47,7 @@ def main() -> None:
         matmul_fn = matmul_fp32_ieee_into
         get_config_fn = get_best_matmul_config
         torch.backends.cuda.matmul.fp32_precision = "ieee"
-    else: # bf16
+    else:  # bf16
         dtype = torch.bfloat16
         matmul_fn = matmul_bf16_into
         get_config_fn = get_best_bf16_matmul_config
@@ -59,18 +66,18 @@ def main() -> None:
         torch_output = torch.empty_like(triton_output)
 
         # First Triton call triggers JIT/autotuning.
-        matmul_fp32_ieee_into(a, b, triton_output)
+        matmul_fn(a, b, triton_output)
         torch.mm(a, b, out=torch_output)
         torch.cuda.synchronize()
         torch.testing.assert_close(triton_output, torch_output, rtol=1e-3, atol=1e-2)
 
-        best_config = get_best_matmul_config()
+        best_config = get_config_fn()
 
         providers = {
-            "triton_ieee": lambda a=a, b=b, triton_output=triton_output: (
-                matmul_fp32_ieee_into(a, b, triton_output)
+            "triton": lambda a=a, b=b, triton_output=triton_output: (
+                matmul_fn(a, b, triton_output)
             ),
-            "torch_ieee": lambda a=a, b=b, torch_output=torch_output: torch.mm(
+            "torch": lambda a=a, b=b, torch_output=torch_output: torch.mm(
                 a, b, out=torch_output
             ),
         }
@@ -89,7 +96,7 @@ def main() -> None:
                 "raw_samples_ms": samples,
             }
 
-            if provider == "triton_ieee":
+            if provider == "triton":
                 result["autotune_config"] = best_config
 
             results.append(result)
@@ -100,19 +107,19 @@ def main() -> None:
 
     run_directory = create_run_directory(
         args.output_root,
-        "triton_matmul_fp32_ieee",
+        f"triton_matmul_{args.precision}",
         commit,
     )
     result_path = run_directory / "result.json"
     write_json(
         result_path,
         {
-            "experiment": ("triton_matmul_fp32_ieee"),
+            "experiment": (f"triton_matmul_{args.precision}"),
             "config": {
                 "sizes": args.sizes,
                 "warmups": args.warmups,
                 "iterations": (args.iterations),
-                "precision": ("fp32_ieee"),
+                "precision": (args.precision),
             },
             "software": {
                 "triton": (triton.__version__),
