@@ -133,5 +133,31 @@ fixed, so the experiment should not be interpreted as a global
 optimization over all Triton GEMM parameters.
 
 
+## 4. Triton BF16 Tensor-Core GEMM
+
+| N | Triton BF16 TFLOPS | PyTorch BF16 TFLOPS | Triton / PyTorch | Best Config |
+| ---: | ---: | ---: | ---: | --- |
+| 512 | 36.71 | 37.45 | 98.0% | 32×64×32, 2 warps, 5 stages |
+| 1024 | 87.38 | 123.36 | 70.8% | 32×64×32, 2 warps, 5 stages |
+| 2048 | 164.48 | 169.47 | 97.1% | 128×128×32, 4 warps, 4 stages |
+| 4096 | 174.54 | 154.81 | 112.7% | 128×128×32, 4 warps, 4 stages |
+
+Switching from FP32 IEEE to BF16 substantially changes the hardware
+execution path. BF16 inputs allow `tl.dot` to use Tensor-Core-oriented
+matrix execution while accumulating into FP32.
+
+For N=4096, Triton improved from 41.57 TFLOPS in FP32 IEEE to
+174.54 effective TFLOPS in BF16.
+
+The result should not be interpreted as a universal Triton advantage
+over vendor libraries. Performance remains strongly shape-dependent:
+at N=1024, Triton reached only 70.8% of the PyTorch baseline, while
+at N=2048 it reached 97.1%.
+
+Autotuning also selected different configurations by workload size,
+demonstrating that tile size, program-level parallelism, warp count,
+pipeline depth, and dtype jointly affect kernel performance.
+
+
 Benchmark results determine how fast each version runs, while Nsight Compute
 provides evidence explaining why those differences occur

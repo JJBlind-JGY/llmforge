@@ -74,8 +74,8 @@ def main() -> None:
         best_config = get_config_fn()
 
         providers = {
-            "triton": lambda a=a, b=b, triton_output=triton_output: (
-                matmul_fn(a, b, triton_output)
+            "triton": lambda a=a, b=b, triton_output=triton_output: matmul_fn(
+                a, b, triton_output
             ),
             "torch": lambda a=a, b=b, torch_output=torch_output: torch.mm(
                 a, b, out=torch_output
