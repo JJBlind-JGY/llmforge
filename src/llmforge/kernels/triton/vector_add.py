@@ -54,5 +54,5 @@ def vector_add_into(
         raise ValueError("block_size must be a power of two.")
 
     n_elements = output.numel()
-    grid = triton.cdiv(n_elements, block_size)
+    grid = (triton.cdiv(n_elements, block_size),)
     _vector_add_kernel[grid](x, y, output, n_elements, BLOCK_SIZE=block_size)
