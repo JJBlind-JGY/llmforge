@@ -52,7 +52,7 @@ def main() -> None:
 
         def triton_operation(x=x, y=y, triton_output=triton_output) -> None:
             vector_add_into(x, y, triton_output, block_size=args.block_size)
-        
+
         def torch_operation(x=x, y=y, torch_output=torch_output) -> None:
             torch.add(x, y, out=torch_output)
 
@@ -62,7 +62,7 @@ def main() -> None:
         }
 
         for provider, operation in providers.items():
-            warmup(operation=operation, warmups=args.warmups)
+            warmup(operation=operation, iterations=args.warmups)
             samples = measure_cuda_events(
                 operation=operation, iterations=args.iterations
             )
