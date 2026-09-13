@@ -212,16 +212,17 @@ def main() -> None:
         kv_bytes = cache_storage_bytes(base_cache)
 
         def decode_operation() -> None:
-            logits, _ = model.forward_with_cache(
-                next_token,
-                past_key_values=(base_cache),
-            )
+            with torch.no_grad():
+                logits, _ = model.forward_with_cache(
+                    next_token,
+                    past_key_values=(base_cache),
+                )
 
-            torch.argmax(
-                logits[:, -1, :],
-                dim=-1,
-                keepdim=True,
-            )
+                torch.argmax(
+                    logits[:, -1, :],
+                    dim=-1,
+                    keepdim=True,
+                )
 
         warmup(
             decode_operation,
