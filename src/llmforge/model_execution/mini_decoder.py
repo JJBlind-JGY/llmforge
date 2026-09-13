@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from typing import Literal
 
 import torch
 import torch.nn.functional as F
@@ -19,6 +20,11 @@ PastKeyValues = tuple[
     ...,
 ]
 
+AttentionBackend = Literal[
+    "naive",
+    "sdpa",
+]
+
 
 @dataclass(frozen=True)
 class MiniDecoderConfig:
@@ -31,6 +37,7 @@ class MiniDecoderConfig:
     num_attention_heads: int
     num_key_value_heads: int
     max_sequence_length: int
+    attention_backend: AttentionBackend = "naive"
 
     def __post_init__(self) -> None:
         values = {
@@ -54,6 +61,9 @@ class MiniDecoderConfig:
             raise ValueError(
                 "num_attention_heads must be divisible by num_key_value_heads."
             )
+
+        if self.attention_backend not in {"naive", "sdpa"}:
+            raise ValueError("attention_backend must be one of {'naive', 'sdpa'}.")
 
     @property
     def head_dim(self) -> int:
@@ -114,6 +124,8 @@ class CausalSelfAttention(nn.Module):
 
         self.head_dim = config.head_dim
 
+        self.attention_backend = config.attention_backend
+
         self.kv_repeat = config.query_heads_per_kv_head
 
         self.q_proj = nn.Linear(
@@ -138,6 +150,73 @@ class CausalSelfAttention(nn.Module):
             config.hidden_size,
             config.hidden_size,
             bias=False,
+        )
+
+    def _naive_attention(
+        self,
+        q: torch.Tensor,
+        k: torch.Tensor,
+        v: torch.Tensor,
+        causal_mask: torch.Tensor,
+    ) -> torch.Tensor:
+        """Original multi-pass naive attention baseline."""
+        k_for_attention = k.repeat_interleave(self.kv_repeat, dim=1)
+        v_for_attention = v.repeat_interleave(self.kv_repeat, dim=1)
+
+        scores = torch.matmul(q, k_for_attention.transpose(-2, -1))
+        scores = scores / math.sqrt(self.head_dim)
+        scores = scores.masked_fill(causal_mask, torch.finfo(scores.dtype).min)
+        probabilities = torch.softmax(scores, dim=-1)
+        return torch.matmul(probabilities, v_for_attention)
+
+    def _sdpa_attention(
+        self,
+        q: torch.Tensor,
+        k: torch.Tensor,
+        v: torch.Tensor,
+        *,
+        causal_mask: torch.Tensor,
+        has_past: bool,
+    ) -> torch.Tensor:
+        """Fused attention via torch.nn.functional.scaled_dot_product_attention."""
+        enable_gqa = self.num_attention_heads != self.num_key_value_heads
+        query_length = q.shape[-2]
+
+        if not has_past:
+            # Prefill: S > 1, pure causal
+            return F.scaled_dot_product_attention(
+                q,
+                k,
+                v,
+                attn_mask=None,
+                dropout_p=0.0,
+                is_causal=(query_length > 1),
+                enable_gqa=enable_gqa,
+            )
+
+        if query_length == 1:
+            # Incremental Decode: Q=1, K=S+1, all keys visible
+            return F.scaled_dot_product_attention(
+                q,
+                k,
+                v,
+                attn_mask=None,
+                dropout_p=0.0,
+                is_causal=False,
+                enable_gqa=enable_gqa,
+            )
+
+        # General cached multi-token case.
+        # PyTorch SDPA 布尔 mask 语义: True = 参与, 与我们相反
+        allowed_mask = ~causal_mask
+        return F.scaled_dot_product_attention(
+            q,
+            k,
+            v,
+            attn_mask=allowed_mask,
+            dropout_p=0.0,
+            is_causal=False,
+            enable_gqa=enable_gqa,
         )
 
     def forward(
@@ -211,51 +290,26 @@ class CausalSelfAttention(nn.Module):
 
         present_key_value = (k, v) if use_cache else None
 
-        k_for_attention = k.repeat_interleave(
-            self.kv_repeat,
-            dim=1,
-        )
+        has_past = past_key_value is not None
 
-        v_for_attention = v.repeat_interleave(
-            self.kv_repeat,
-            dim=1,
-        )
-
-        scores = torch.matmul(
-            q,
-            k_for_attention.transpose(
-                -2,
-                -1,
-            ),
-        )
-
-        scores = scores / math.sqrt(self.head_dim)
-
-        scores = scores.masked_fill(
-            causal_mask,
-            torch.finfo(scores.dtype).min,
-        )
-
-        probabilities = torch.softmax(
-            scores,
-            dim=-1,
-        )
-
-        context = torch.matmul(
-            probabilities,
-            v_for_attention,
-        )
+        if self.attention_backend == "naive":
+            context = self._naive_attention(q, k, v, causal_mask)
+        elif self.attention_backend == "sdpa":
+            context = self._sdpa_attention(
+                q,
+                k,
+                v,
+                causal_mask=causal_mask,
+                has_past=has_past,
+            )
+        else:
+            raise RuntimeError(
+                f"Unsupported attention backend: {self.attention_backend}"
+            )
 
         context = (
-            context.transpose(1, 2)
-            .contiguous()
-            .view(
-                batch_size,
-                sequence_length,
-                -1,
-            )
+            context.transpose(1, 2).contiguous().view(batch_size, sequence_length, -1)
         )
-
         output = self.o_proj(context)
 
         return (

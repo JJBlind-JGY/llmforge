@@ -210,3 +210,46 @@ def test_cached_generation_matches_naive() -> None:
     assert cached_stats.cache_lengths_after_forward == (4, 5, 6)
 
     assert cached_stats.model_token_evaluations == 6
+
+
+def test_sdpa_prefill_matches_naive() -> None:
+    """SDPA and naive must produce the same logits (MHA, CPU-safe)."""
+    torch.manual_seed(0)
+
+    naive_config = MiniDecoderConfig(
+        vocab_size=64,
+        hidden_size=32,
+        intermediate_size=64,
+        num_layers=2,
+        num_attention_heads=4,
+        num_key_value_heads=4,  # MHA: H_kv = H
+        max_sequence_length=32,
+        attention_backend="naive",
+    )
+    sdpa_config = MiniDecoderConfig(
+        vocab_size=64,
+        hidden_size=32,
+        intermediate_size=64,
+        num_layers=2,
+        num_attention_heads=4,
+        num_key_value_heads=4,
+        max_sequence_length=32,
+        attention_backend="sdpa",
+    )
+
+    naive_model = MiniDecoderLM(naive_config).eval()
+    sdpa_model = MiniDecoderLM(sdpa_config).eval()
+    sdpa_model.load_state_dict(naive_model.state_dict())
+
+    input_ids = torch.tensor([[1, 2, 3, 4, 5, 6, 7]])
+
+    with torch.no_grad():
+        naive_logits = naive_model(input_ids)
+        sdpa_logits = sdpa_model(input_ids)
+
+    torch.testing.assert_close(
+        sdpa_logits,
+        naive_logits,
+        rtol=1e-4,
+        atol=1e-5,
+    )

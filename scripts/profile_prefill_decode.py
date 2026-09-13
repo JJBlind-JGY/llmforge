@@ -70,6 +70,12 @@ def main() -> None:
         default=Path("artifacts/profiling"),
     )
 
+    parser.add_argument(
+        "--attention-backend",
+        choices=["naive", "sdpa"],
+        default="naive",
+    )
+
     args = parser.parse_args()
 
     environment = collect_environment(role="gpu-server")
@@ -91,6 +97,7 @@ def main() -> None:
         num_attention_heads=8,
         num_key_value_heads=2,
         max_sequence_length=8192,
+        attention_backend=args.attention_backend,
     )
 
     model = MiniDecoderLM(config).to(
@@ -210,12 +217,13 @@ def main() -> None:
     write_json(
         metadata_path,
         {
-            "experiment": ("prefill_decode_profile"),
+            "experiment": f"prefill_decode_profile_{args.attention_backend}",
             "mode": args.mode,
             "context_length": (args.context_length),
             "iterations": (args.iterations),
             "dtype": "bfloat16",
             "environment": (environment),
+            "attention_backend": args.attention_backend,
         },
     )
 

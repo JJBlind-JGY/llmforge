@@ -122,6 +122,12 @@ def main() -> None:
         default=Path("artifacts/benchmarks"),
     )
 
+    parser.add_argument(
+        "--attention-backend",
+        choices=["naive", "sdpa"],
+        default="naive",
+    )
+
     args = parser.parse_args()
 
     environment = collect_environment(role="gpu-server")
@@ -150,6 +156,7 @@ def main() -> None:
             8192,
             required_sequence_length,
         ),
+        attention_backend=args.attention_backend,
     )
 
     model = MiniDecoderLM(config).to(
@@ -308,7 +315,7 @@ def main() -> None:
     write_json(
         result_path,
         {
-            "experiment": ("prefill_decode"),
+            "experiment": f"prefill_decode_{args.attention_backend}",
             "config": {
                 "model": {
                     "vocab_size": (config.vocab_size),
@@ -333,6 +340,7 @@ def main() -> None:
             "environment": (environment),
             "prompt_results": (prompt_results),
             "output_results": (output_results),
+            "attention_backend": args.attention_backend,
         },
     )
 
