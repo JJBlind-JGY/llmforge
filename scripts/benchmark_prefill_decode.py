@@ -163,7 +163,7 @@ def main() -> None:
 
     print()
     print("=== Prompt / Context Sweep ===")
-    print(f"{'Prompt':>8}{'Prefill(ms)':>16}{'Decode(ms)':>16}{'KV(MiB)':>12}")
+    print(f"{'Prompt':>8}{'PrefillFwd(ms)':>16}{'DecodeFwd(ms)':>16}{'KV(MiB)':>12}")
     print("-" * 52)
 
     for prompt_length in args.prompt_lengths:
@@ -177,14 +177,9 @@ def main() -> None:
             device=device,
         )
 
+        @torch.inference_mode()
         def prefill_operation() -> None:
-            logits, _ = model.forward_with_cache(prompt)
-
-            torch.argmax(
-                logits[:, -1, :],
-                dim=-1,
-                keepdim=True,
-            )
+            model.forward_with_cache(prompt)
 
         warmup(
             prefill_operation,
@@ -211,18 +206,12 @@ def main() -> None:
 
         kv_bytes = cache_storage_bytes(base_cache)
 
+        @torch.inference_mode()
         def decode_operation() -> None:
-            with torch.no_grad():
-                logits, _ = model.forward_with_cache(
-                    next_token,
-                    past_key_values=(base_cache),
-                )
-
-                torch.argmax(
-                    logits[:, -1, :],
-                    dim=-1,
-                    keepdim=True,
-                )
+            model.forward_with_cache(
+                next_token,
+                past_key_values=(base_cache),
+            )
 
         warmup(
             decode_operation,
@@ -238,8 +227,8 @@ def main() -> None:
 
         result = {
             "prompt_length": (prompt_length),
-            "prefill_median_ms": (prefill_stats.median_ms),
-            "decode_step_median_ms": (decode_stats.median_ms),
+            "prefill_forward_median_ms": (prefill_stats.median_ms),
+            "decode_forward_median_ms": (decode_stats.median_ms),
             "kv_cache_bytes": (kv_bytes),
             "prefill_samples_ms": (prefill_samples),
             "decode_samples_ms": (decode_samples),
@@ -335,6 +324,11 @@ def main() -> None:
                 "output_sweep_prompt": (args.output_sweep_prompt),
                 "warmups": (args.warmups),
                 "iterations": (args.iterations),
+            },
+            "execution": {
+                "mode": "torch.inference_mode",
+                "dtype": "bfloat16",
+                "batch_size": 1,
             },
             "environment": (environment),
             "prompt_results": (prompt_results),
