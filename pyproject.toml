@@ -18,6 +18,10 @@ gpu = [
     "torch==2.13.0; sys_platform == 'linux'",
 ]
 
+serving = [
+    "httpx>=0.28,<1",
+]
+
 [tool.uv.sources]
 torch = [
     { index = "pytorch-cu130", extra = "gpu" },
