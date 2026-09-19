@@ -1,0 +1,19 @@
+{
+  "model": "Qwen/Qwen3-8B",
+  "revision": "47719a242beab8f9aecc40ce3928b034dd5dd559",
+  "served_model_name": "qwen3-8b",
+  "host": "127.0.0.1",
+  "port": 8000,
+  "dtype": "bfloat16",
+  "kv_cache_dtype": "bfloat16",
+  "tensor_parallel_size": 1,
+  "max_model_len": 8192,
+  "gpu_memory_utilization": 0.9,
+  "model_impl": "vllm",
+  "load_format": "safetensors",
+  "generation_config": "vllm",
+  "seed": 0,
+  "enable_prefix_caching": false,
+  "enable_chunked_prefill": true,
+  "enable_thinking": false
+}
