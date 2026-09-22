@@ -1,0 +1,12 @@
+{
+  "status": "pending",
+  "project": "",
+  "url": "",
+  "title": "",
+  "date": "",
+  "summary": "Replace this file with docs/upstream_contribution.json only after a real issue, patch, or pull request has been submitted.",
+  "notes": [
+    "Do not fabricate an upstream attempt just to satisfy the checklist.",
+    "A documentation issue or small instrumentation patch is acceptable if it has real value."
+  ]
+}
