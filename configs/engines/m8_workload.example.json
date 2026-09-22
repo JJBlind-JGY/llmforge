@@ -1,0 +1,19 @@
+{
+  "workload_id": "m8_fixed_mixed_lengths_neutral",
+  "source_workload": "reuse an existing M3 workload config",
+  "client": "llmforge_m3",
+  "endpoint": "/v1/chat/completions",
+  "streaming": true,
+  "prompt_length_mode": "same M3 mixed prompt distribution",
+  "output_length_mode": "same M3 output distribution",
+  "request_rate": "same arrival schedule for both engines",
+  "max_concurrency": 8,
+  "repetitions": 5,
+  "warmup_requests": 8,
+  "prefix_reuse": false,
+  "notes": [
+    "Use identical request payloads and arrival timestamps for vLLM and SGLang.",
+    "First cross-engine baseline disables prefix reuse/radix reuse to reduce engine-specific cache effects.",
+    "Run a second shared-prefix experiment only after the neutral baseline."
+  ]
+}
