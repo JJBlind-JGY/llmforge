@@ -1,0 +1,38 @@
+{
+  "candidate_id": "adaptive_mixed_batch_budget",
+  "title": "Adaptive mixed prefill/decode token budget",
+  "area": "prefill_decode_interference",
+  "problem": "Mixed long-prefill/decode traffic may increase decode tail latency.",
+  "mechanism": "Use live scheduler state to reduce the per-step token budget only when prefill and decode overlap under pressure.",
+  "changed_component": "vLLM V1 Scheduler",
+  "expected_benefit": "Lower decode tail latency under mixed traffic.",
+  "expected_tradeoffs": [
+    "Lower prefill throughput",
+    "Possible TTFT increase"
+  ],
+  "state": "evidence_pending",
+  "evidence": {
+    "reproduction_artifacts": [
+      "artifacts/benchmarks/serving/<baseline1>/result.json",
+      "artifacts/benchmarks/serving/<baseline2>/result.json",
+      "artifacts/benchmarks/serving/<baseline3>/result.json"
+    ],
+    "profiler_artifacts": [
+      "artifacts/runtime/<run>/summary.json"
+    ],
+    "mechanism_note": "M4 trace must show prompt tokens sharing scheduling steps with active decode requests when TPOT/ITL tail worsens.",
+    "baseline_artifact": "artifacts/optimization/<experiment>/experiment.json",
+    "correctness_plan": "Greedy correctness probe response hashes and token counts must match between baseline and candidate.",
+    "regression_metrics": [
+      "output_throughput_tok_s",
+      "ttft_p99_ms",
+      "error_rate"
+    ],
+    "hardware_feasible": true,
+    "community_evidence": [
+      "docs/m7_upstream_gap_audit.md"
+    ],
+    "upstream_overlap": "vLLM 0.29 has static scheduler budget/chunking controls; re-audit confirms whether dynamic state-driven adaptation remains a meaningful gap.",
+    "parameter_only": false
+  }
+}
