@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "service": {
+    "name": "llmforge-observability",
+    "host": "127.0.0.1",
+    "port": 9108,
+    "upstream_base_url": "http://127.0.0.1:8000",
+    "request_timeout_s": 180.0,
+    "shutdown_grace_s": 10.0
+  },
+  "health": {
+    "upstream_required": true,
+    "gpu_required": true,
+    "upstream_timeout_s": 2.0,
+    "failure_threshold": 3
+  },
+  "observability": {
+    "sample_interval_s": 1.0,
+    "gpu_indices": [
+      0
+    ],
+    "scrape_vllm_metrics": true,
+    "log_level": "INFO",
+    "tracing": {
+      "mode": "jsonl",
+      "jsonl_path": "artifacts/telemetry/spans.jsonl",
+      "queue_size": 8192,
+      "flush_every": 128,
+      "otlp_endpoint": null
+    },
+    "scrape_gpu_metrics": true
+  }
+}
