@@ -32,4 +32,4 @@ jobs:
 
       - name: Pure-Python infra tests
         run: |
-          uv run --no-sync pytest             tests/telemetry             tests/production             tests/runtime             tests/distributed
+          uv run --no-sync pytest             tests/telemetry             tests/production             tests/runtime             tests/distributed             tests/optimization
