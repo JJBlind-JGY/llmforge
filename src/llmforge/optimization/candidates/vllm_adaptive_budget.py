@@ -34,9 +34,7 @@ from .adaptive_budget import (
 )
 
 
-class AdaptiveBudgetScheduler(
-    TracingScheduler
-):
+class AdaptiveBudgetScheduler(TracingScheduler):
     def __init__(
         self,
         *args: Any,
@@ -47,14 +45,17 @@ class AdaptiveBudgetScheduler(
             **kwargs,
         )
 
-        if int(
-            getattr(
-                self,
-                "num_spec_tokens",
-                0,
+        if (
+            int(
+                getattr(
+                    self,
+                    "num_spec_tokens",
+                    0,
+                )
+                or 0
             )
-            or 0
-        ) != 0:
+            != 0
+        ):
             raise RuntimeError(
                 "AdaptiveBudgetScheduler "
                 "M7 reference implementation "
@@ -62,37 +63,20 @@ class AdaptiveBudgetScheduler(
                 "decoding."
             )
 
-        self._m7_config = (
-            AdaptiveBudgetConfig
-            .from_environment()
-        )
+        self._m7_config = AdaptiveBudgetConfig.from_environment()
 
-        self._m7_base_budget = int(
-            self.max_num_scheduled_tokens
-        )
+        self._m7_base_budget = int(self.max_num_scheduled_tokens)
 
         raw_path = os.environ.get(
             "LLMFORGE_M7_DECISION_TRACE",
-            (
-                "artifacts/optimization/"
-                "adaptive_budget_"
-                "{pid}.jsonl"
-            ),
+            ("artifacts/optimization/adaptive_budget_{pid}.jsonl"),
         )
 
-        self._m7_decisions = (
-            BufferedDecisionRecorder(
-                Path(
-                    raw_path.format(
-                        pid=os.getpid()
-                    )
-                )
-            )
+        self._m7_decisions = BufferedDecisionRecorder(
+            Path(raw_path.format(pid=os.getpid()))
         )
 
-        atexit.register(
-            self._m7_close
-        )
+        atexit.register(self._m7_close)
 
     def _m7_close(
         self,
@@ -109,103 +93,62 @@ class AdaptiveBudgetScheduler(
     def _m7_pressure(
         self,
     ) -> SchedulerPressure:
-        running_prefill, running_decode = (
-            count_request_phases(
-                self.running
-            )
-        )
+        running_prefill, running_decode = count_request_phases(self.running)
 
         waiting_requests = [
-            *list(
-                self.waiting
-            ),
-            *list(
-                self.skipped_waiting
-            ),
+            *list(self.waiting),
+            *list(self.skipped_waiting),
         ]
 
-        waiting_prefill, waiting_decode = (
-            count_request_phases(
-                waiting_requests
-            )
-        )
+        waiting_prefill, waiting_decode = count_request_phases(waiting_requests)
 
         return SchedulerPressure(
-            running_prefill=(
-                running_prefill
-            ),
-            running_decode=(
-                running_decode
-            ),
-            waiting_prefill=(
-                waiting_prefill
-            ),
-            waiting_decode=(
-                waiting_decode
-            ),
-            kv_usage_ratio=float(
-                self.get_kv_cache_usage()
-            ),
+            running_prefill=(running_prefill),
+            running_decode=(running_decode),
+            waiting_prefill=(waiting_prefill),
+            waiting_decode=(waiting_decode),
+            kv_usage_ratio=float(self.get_kv_cache_usage()),
         )
 
     def schedule(
         self,
         throttle_prefills: bool = False,
     ):
-        pressure = (
-            self._m7_pressure()
-        )
+        pressure = self._m7_pressure()
 
         decision = choose_budget(
             config=self._m7_config,
-            base_budget=(
-                self._m7_base_budget
-            ),
+            base_budget=(self._m7_base_budget),
             pressure=pressure,
         )
 
-        next_step_id = int(
-            getattr(
-                self,
-                "_llmforge_step_id",
-                0,
+        next_step_id = (
+            int(
+                getattr(
+                    self,
+                    "_llmforge_step_id",
+                    0,
+                )
             )
-        ) + 1
+            + 1
+        )
 
         self._m7_decisions.emit(
             {
                 "schema_version": 1,
-                "wall_time_ns": (
-                    time.time_ns()
-                ),
-                "monotonic_ns": (
-                    time.perf_counter_ns()
-                ),
-                "step_id": (
-                    next_step_id
-                ),
-                "candidate_id": (
-                    "adaptive_mixed_batch_budget"
-                ),
+                "wall_time_ns": (time.time_ns()),
+                "monotonic_ns": (time.perf_counter_ns()),
+                "step_id": (next_step_id),
+                "candidate_id": ("adaptive_mixed_batch_budget"),
                 **decision.to_dict(),
             }
         )
 
-        original_budget = (
-            self.max_num_scheduled_tokens
-        )
+        original_budget = self.max_num_scheduled_tokens
 
-        self.max_num_scheduled_tokens = (
-            decision.applied_budget
-        )
+        self.max_num_scheduled_tokens = decision.applied_budget
 
         try:
-            return super().schedule(
-                throttle_prefills=(
-                    throttle_prefills
-                )
-            )
+            return super().schedule(throttle_prefills=(throttle_prefills))
         finally:
-            self.max_num_scheduled_tokens = (
-                original_budget
-            )
+            self.max_num_scheduled_tokens = original_budget

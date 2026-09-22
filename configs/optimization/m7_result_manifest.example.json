@@ -1,0 +1,19 @@
+{
+  "experiment": "artifacts/optimization/<experiment>/experiment.json",
+  "selection_gate": "artifacts/optimization/<experiment>/selection_gate.json",
+  "correctness": "artifacts/optimization/<experiment>/correctness_comparison.json",
+  "baseline_results": [
+    "artifacts/benchmarks/serving/<baseline_run1>/result.json",
+    "artifacts/benchmarks/serving/<baseline_run2>/result.json",
+    "artifacts/benchmarks/serving/<baseline_run3>/result.json",
+    "artifacts/benchmarks/serving/<baseline_run4>/result.json",
+    "artifacts/benchmarks/serving/<baseline_run5>/result.json"
+  ],
+  "candidate_results": [
+    "artifacts/benchmarks/serving/<candidate_run1>/result.json",
+    "artifacts/benchmarks/serving/<candidate_run2>/result.json",
+    "artifacts/benchmarks/serving/<candidate_run3>/result.json",
+    "artifacts/benchmarks/serving/<candidate_run4>/result.json",
+    "artifacts/benchmarks/serving/<candidate_run5>/result.json"
+  ]
+}

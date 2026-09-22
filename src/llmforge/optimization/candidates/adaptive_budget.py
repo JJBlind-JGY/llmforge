@@ -16,27 +16,16 @@ class AdaptiveBudgetConfig:
 
     def validate(self) -> None:
         if self.min_budget <= 0:
-            raise ValueError(
-                "min_budget must be positive."
-            )
+            raise ValueError("min_budget must be positive.")
 
         if self.prefill_quantum < 0:
-            raise ValueError(
-                "prefill_quantum must be "
-                "non-negative."
-            )
+            raise ValueError("prefill_quantum must be non-negative.")
 
         if self.decode_pressure <= 0:
-            raise ValueError(
-                "decode_pressure must be "
-                "positive."
-            )
+            raise ValueError("decode_pressure must be positive.")
 
         if not 0.0 <= self.kv_pressure <= 1.0:
-            raise ValueError(
-                "kv_pressure must be "
-                "in [0, 1]."
-            )
+            raise ValueError("kv_pressure must be in [0, 1].")
 
     @classmethod
     def from_environment(
@@ -85,13 +74,8 @@ class SchedulerPressure:
     def has_mixed_work(
         self,
     ) -> bool:
-        return (
-            self.running_decode > 0
-            and (
-                self.running_prefill
-                + self.waiting_prefill
-                > 0
-            )
+        return self.running_decode > 0 and (
+            self.running_prefill + self.waiting_prefill > 0
         )
 
     def to_dict(self) -> dict:
@@ -109,16 +93,11 @@ class BudgetDecision:
     def changed(
         self,
     ) -> bool:
-        return (
-            self.applied_budget
-            != self.base_budget
-        )
+        return self.applied_budget != self.base_budget
 
     def to_dict(self) -> dict:
         data = asdict(self)
-        data["changed"] = (
-            self.changed
-        )
+        data["changed"] = self.changed
         return data
 
 
@@ -137,31 +116,20 @@ def is_prefill_request(
         None,
     )
 
-    if (
-        prompt_tokens is None
-        or computed_tokens is None
-    ):
+    if prompt_tokens is None or computed_tokens is None:
         return False
 
-    return int(
-        computed_tokens
-    ) < int(
-        prompt_tokens
-    )
+    return int(computed_tokens) < int(prompt_tokens)
 
 
 def count_request_phases(
-    requests: Iterable[
-        object
-    ],
+    requests: Iterable[object],
 ) -> tuple[int, int]:
     prefill = 0
     decode = 0
 
     for request in requests:
-        if is_prefill_request(
-            request
-        ):
+        if is_prefill_request(request):
             prefill += 1
         else:
             decode += 1
@@ -178,9 +146,7 @@ def choose_budget(
     config.validate()
 
     if base_budget <= 0:
-        raise ValueError(
-            "base_budget must be positive."
-        )
+        raise ValueError("base_budget must be positive.")
 
     if not pressure.has_mixed_work:
         return BudgetDecision(
@@ -190,20 +156,11 @@ def choose_budget(
             pressure=pressure,
         )
 
-    decode_pressure = (
-        pressure.running_decode
-        >= config.decode_pressure
-    )
+    decode_pressure = pressure.running_decode >= config.decode_pressure
 
-    kv_pressure = (
-        pressure.kv_usage_ratio
-        >= config.kv_pressure
-    )
+    kv_pressure = pressure.kv_usage_ratio >= config.kv_pressure
 
-    if not (
-        decode_pressure
-        or kv_pressure
-    ):
+    if not (decode_pressure or kv_pressure):
         return BudgetDecision(
             base_budget=base_budget,
             applied_budget=base_budget,
@@ -215,8 +172,7 @@ def choose_budget(
     # bounded amount of prefill progress in the same step.
     target = max(
         config.min_budget,
-        pressure.running_decode
-        + config.prefill_quantum,
+        pressure.running_decode + config.prefill_quantum,
     )
 
     applied = min(
@@ -227,20 +183,14 @@ def choose_budget(
     reasons = []
 
     if decode_pressure:
-        reasons.append(
-            "decode_pressure"
-        )
+        reasons.append("decode_pressure")
 
     if kv_pressure:
-        reasons.append(
-            "kv_pressure"
-        )
+        reasons.append("kv_pressure")
 
     return BudgetDecision(
         base_budget=base_budget,
         applied_budget=applied,
-        reason="+".join(
-            reasons
-        ),
+        reason="+".join(reasons),
         pressure=pressure,
     )

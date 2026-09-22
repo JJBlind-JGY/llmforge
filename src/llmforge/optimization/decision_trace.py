@@ -24,37 +24,22 @@ class BufferedDecisionRecorder:
             exist_ok=True,
         )
 
-        self._queue: queue.Queue[
-            dict | object
-        ] = queue.Queue(
-            maxsize=queue_size
-        )
+        self._queue: queue.Queue[dict | object] = queue.Queue(maxsize=queue_size)
 
-        self._flush_every = (
-            flush_every
-        )
+        self._flush_every = flush_every
 
         self._closed = False
         self._submitted = 0
         self._written = 0
         self._dropped = 0
-        self._error: (
-            BaseException | None
-        ) = None
+        self._error: BaseException | None = None
 
-        self._lock = (
-            threading.Lock()
-        )
+        self._lock = threading.Lock()
 
-        self._thread = (
-            threading.Thread(
-                target=self._writer,
-                name=(
-                    "llmforge-m7-"
-                    "decision-trace"
-                ),
-                daemon=True,
-            )
+        self._thread = threading.Thread(
+            target=self._writer,
+            name=("llmforge-m7-decision-trace"),
+            daemon=True,
         )
 
         self._thread.start()
@@ -64,9 +49,7 @@ class BufferedDecisionRecorder:
         payload: dict,
     ) -> bool:
         if self._closed:
-            raise RuntimeError(
-                "decision recorder is closed."
-            )
+            raise RuntimeError("decision recorder is closed.")
 
         self._raise_error()
 
@@ -74,11 +57,7 @@ class BufferedDecisionRecorder:
             self._submitted += 1
 
         try:
-            self._queue.put_nowait(
-                dict(
-                    payload
-                )
-            )
+            self._queue.put_nowait(dict(payload))
             return True
         except queue.Full:
             with self._lock:
@@ -90,9 +69,7 @@ class BufferedDecisionRecorder:
             return
 
         self._queue.join()
-        self._queue.put(
-            _STOP
-        )
+        self._queue.put(_STOP)
         self._thread.join()
         self._closed = True
         self._raise_error()
@@ -100,15 +77,9 @@ class BufferedDecisionRecorder:
     def stats(self) -> dict:
         with self._lock:
             return {
-                "submitted": (
-                    self._submitted
-                ),
-                "written": (
-                    self._written
-                ),
-                "dropped": (
-                    self._dropped
-                ),
+                "submitted": (self._submitted),
+                "written": (self._written),
+                "dropped": (self._dropped),
             }
 
     def _writer(self) -> None:
@@ -121,9 +92,7 @@ class BufferedDecisionRecorder:
                 pending = 0
 
                 while True:
-                    item = (
-                        self._queue.get()
-                    )
+                    item = self._queue.get()
 
                     try:
                         if item is _STOP:
@@ -149,10 +118,7 @@ class BufferedDecisionRecorder:
                         with self._lock:
                             self._written += 1
 
-                        if (
-                            pending
-                            >= self._flush_every
-                        ):
+                        if pending >= self._flush_every:
                             handle.flush()
                             pending = 0
                     finally:
@@ -171,6 +137,4 @@ class BufferedDecisionRecorder:
 
     def _raise_error(self) -> None:
         if self._error is not None:
-            raise RuntimeError(
-                "decision trace writer failed."
-            ) from self._error
+            raise RuntimeError("decision trace writer failed.") from self._error

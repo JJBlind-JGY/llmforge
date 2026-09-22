@@ -24,11 +24,7 @@ def test_phase_counting() -> None:
         ),
     ]
 
-    prefill, decode = (
-        count_request_phases(
-            requests
-        )
-    )
+    prefill, decode = count_request_phases(requests)
 
     assert prefill == 1
     assert decode == 2
@@ -36,9 +32,7 @@ def test_phase_counting() -> None:
 
 def test_policy_keeps_baseline_without_mixed_work() -> None:
     decision = choose_budget(
-        config=(
-            AdaptiveBudgetConfig()
-        ),
+        config=(AdaptiveBudgetConfig()),
         base_budget=2048,
         pressure=SchedulerPressure(
             running_prefill=0,
@@ -49,10 +43,7 @@ def test_policy_keeps_baseline_without_mixed_work() -> None:
         ),
     )
 
-    assert (
-        decision.applied_budget
-        == 2048
-    )
+    assert decision.applied_budget == 2048
 
     assert not decision.changed
 
@@ -75,16 +66,10 @@ def test_policy_reduces_budget_under_decode_pressure() -> None:
         ),
     )
 
-    assert (
-        decision.applied_budget
-        == 264
-    )
+    assert decision.applied_budget == 264
 
     assert decision.changed
-    assert (
-        decision.reason
-        == "decode_pressure"
-    )
+    assert decision.reason == "decode_pressure"
 
 
 def test_policy_caps_at_base_budget() -> None:
@@ -105,7 +90,4 @@ def test_policy_caps_at_base_budget() -> None:
         ),
     )
 
-    assert (
-        decision.applied_budget
-        == 1024
-    )
+    assert decision.applied_budget == 1024

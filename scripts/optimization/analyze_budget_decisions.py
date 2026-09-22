@@ -27,22 +27,12 @@ def main() -> None:
     args = parser.parse_args()
 
     rows = [
-        json.loads(
-            line
-        )
-        for line in args.trace.read_text(
-            encoding="utf-8"
-        ).splitlines()
+        json.loads(line)
+        for line in args.trace.read_text(encoding="utf-8").splitlines()
         if line.strip()
     ]
 
-    changed = [
-        row
-        for row in rows
-        if row.get(
-            "changed"
-        )
-    ]
+    changed = [row for row in rows if row.get("changed")]
 
     reasons = Counter(
         str(
@@ -56,53 +46,17 @@ def main() -> None:
 
     payload = {
         "steps": len(rows),
-        "changed_steps": len(
-            changed
-        ),
-        "changed_fraction": (
-            len(changed)
-            / len(rows)
-            if rows
-            else 0.0
-        ),
-        "reason_counts": dict(
-            reasons
-        ),
+        "changed_steps": len(changed),
+        "changed_fraction": (len(changed) / len(rows) if rows else 0.0),
+        "reason_counts": dict(reasons),
         "mean_base_budget": (
-            mean(
-                float(
-                    row[
-                        "base_budget"
-                    ]
-                )
-                for row in rows
-            )
-            if rows
-            else None
+            mean(float(row["base_budget"]) for row in rows) if rows else None
         ),
         "mean_applied_budget": (
-            mean(
-                float(
-                    row[
-                        "applied_budget"
-                    ]
-                )
-                for row in rows
-            )
-            if rows
-            else None
+            mean(float(row["applied_budget"]) for row in rows) if rows else None
         ),
         "max_kv_usage_ratio": (
-            max(
-                float(
-                    row[
-                        "pressure"
-                    ][
-                        "kv_usage_ratio"
-                    ]
-                )
-                for row in rows
-            )
+            max(float(row["pressure"]["kv_usage_ratio"]) for row in rows)
             if rows
             else None
         ),
@@ -123,10 +77,7 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    print(
-        f"Decision summary written to: "
-        f"{args.output}"
-    )
+    print(f"Decision summary written to: {args.output}")
 
 
 if __name__ == "__main__":
