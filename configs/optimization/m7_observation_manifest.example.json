@@ -1,0 +1,20 @@
+{
+  "observation_id": "prefill_decode_interference_v1",
+  "workload_id": "mixed_long_prefill_decode",
+  "hypothesis": "Long prefills consume enough per-step scheduled-token budget to increase decode tail latency while decode requests are active.",
+  "serving_results": [
+    "artifacts/benchmarks/serving/<run1>/result.json",
+    "artifacts/benchmarks/serving/<run2>/result.json",
+    "artifacts/benchmarks/serving/<run3>/result.json"
+  ],
+  "runtime_summary": "artifacts/runtime/<run>/summary.json",
+  "distributed_analysis": null,
+  "telemetry_status": null,
+  "profiler_artifacts": [
+    "artifacts/profiles/<trace>.json.gz"
+  ],
+  "notes": [
+    "Do not fill profiler_artifacts with screenshots.",
+    "Every path must refer to raw or machine-readable evidence."
+  ]
+}
