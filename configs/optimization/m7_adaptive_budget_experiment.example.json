@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "experiment_id": "adaptive_budget_mixed_prefill_decode_v1",
+  "candidate_id": "adaptive_mixed_batch_budget",
+  "workload_id": "mixed_long_prefill_decode",
+  "workload_config": "configs/serving/workloads/<existing_m3_mixed_workload>.json",
+  "repetitions": 5,
+  "warmup_requests": 8,
+  "objective_metric": "tpot_p99_ms",
+  "objective_direction": "minimize",
+  "guardrails": {
+    "output_throughput_tok_s": 0.05,
+    "ttft_p99_ms": 0.1,
+    "error_rate": 0.0
+  },
+  "baseline": {
+    "name": "vllm_default_scheduler",
+    "server_config": {
+      "model": "Qwen/Qwen3-8B",
+      "revision": "47719a242beab8f9aecc40ce3928b034dd5dd559",
+      "dtype": "bfloat16",
+      "max_model_len": 8192,
+      "max_num_batched_tokens": 2048,
+      "enable_chunked_prefill": true,
+      "enable_prefix_caching": false,
+      "served_model_name": "qwen3-8b",
+      "kv_cache_dtype": "bfloat16",
+      "gpu_memory_utilization": 0.9,
+      "model_impl": "vllm",
+      "load_format": "safetensors",
+      "generation_config": "vllm",
+      "seed": 0,
+      "enable_thinking": false
+    },
+    "environment": {},
+    "scheduler_class": null
+  },
+  "candidate": {
+    "name": "adaptive_budget_scheduler",
+    "server_config": {
+      "model": "Qwen/Qwen3-8B",
+      "revision": "47719a242beab8f9aecc40ce3928b034dd5dd559",
+      "dtype": "bfloat16",
+      "max_model_len": 8192,
+      "max_num_batched_tokens": 2048,
+      "enable_chunked_prefill": true,
+      "enable_prefix_caching": false,
+      "served_model_name": "qwen3-8b",
+      "kv_cache_dtype": "bfloat16",
+      "gpu_memory_utilization": 0.9,
+      "model_impl": "vllm",
+      "load_format": "safetensors",
+      "generation_config": "vllm",
+      "seed": 0,
+      "enable_thinking": false
+    },
+    "environment": {
+      "LLMFORGE_M7_MIN_BUDGET": "256",
+      "LLMFORGE_M7_PREFILL_QUANTUM": "256",
+      "LLMFORGE_M7_DECODE_PRESSURE": "4",
+      "LLMFORGE_M7_KV_PRESSURE": "0.90"
+    },
+    "scheduler_class": "llmforge.optimization.candidates.vllm_adaptive_budget.AdaptiveBudgetScheduler"
+  },
+  "notes": [
+    "Example only; do not run before the selection gate passes.",
+    "Both arms must use the same M3 workload and server settings except the candidate mechanism.",
+    "Static max_num_batched_tokens sweeps are required controls, not the headline optimization."
+  ]
+}
