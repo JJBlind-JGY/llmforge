@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "model": "Qwen/Qwen3-8B",
+  "revision": "47719a242beab8f9aecc40ce3928b034dd5dd559",
+  "served_model_name": "qwen3-8b",
+  "dtype": "bfloat16",
+  "max_model_len": 8192,
+  "gpu_memory_utilization": 0.9,
+  "offline": true,
+  "profiles": {
+    "vllm": {
+      "host": "127.0.0.1",
+      "port": 8000,
+      "tensor_parallel_size": 1,
+      "data_parallel_size": 1,
+      "cuda_visible_devices": "3",
+      "enable_prefix_caching": false,
+      "enable_chunked_prefill": true
+    },
+    "sglang": {
+      "host": "127.0.0.1",
+      "port": 30000,
+      "tensor_parallel_size": 1,
+      "cuda_visible_devices": "3",
+      "mem_fraction_static": 0.8,
+      "disable_radix_cache": true,
+      "context_length": 8192
+    }
+  },
+  "fairness_notes": [
+    "Use the same model, tokenizer family, dtype, prompt/output workload, GPU, and client measurement boundary.",
+    "Disable engine-specific prefix reuse for the first neutral baseline.",
+    "Engine defaults that cannot be made equivalent must be recorded rather than hidden."
+  ]
+}
