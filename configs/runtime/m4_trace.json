@@ -1,0 +1,15 @@
+{
+  "scheduler_class": "llmforge.runtime.integrations.vllm.tracing_scheduler.TracingScheduler",
+  "trace": {
+    "mode": "buffered",
+    "path": "artifacts/runtime/vllm_runtime_{pid}.jsonl",
+    "queue_size": 65536,
+    "flush_every": 256,
+    "drop_on_full": true
+  },
+  "notes": [
+    "First M4 instrumentation must not change scheduling behavior.",
+    "Use sync mode only for correctness/debug tracing.",
+    "Use buffered mode for formal runtime experiments."
+  ]
+}
