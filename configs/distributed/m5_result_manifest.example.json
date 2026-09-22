@@ -1,0 +1,41 @@
+{
+  "baseline": {
+    "profile": "single_gpu0",
+    "devices": 1,
+    "serving_result": "artifacts/benchmarks/serving/<case>/<run>/result.json",
+    "gpu_telemetry": "artifacts/distributed/telemetry/single_gpu0.csv"
+  },
+  "candidates": [
+    {
+      "profile": "tp2_same_numa_01",
+      "devices": 2,
+      "serving_result": "artifacts/benchmarks/serving/<case>/<run>/result.json",
+      "gpu_telemetry": "artifacts/distributed/telemetry/tp2_same_numa_01.csv"
+    },
+    {
+      "profile": "tp2_cross_numa_02",
+      "devices": 2,
+      "serving_result": "artifacts/benchmarks/serving/<case>/<run>/result.json",
+      "gpu_telemetry": "artifacts/distributed/telemetry/tp2_cross_numa_02.csv"
+    },
+    {
+      "profile": "tp4_all",
+      "devices": 4,
+      "serving_result": "artifacts/benchmarks/serving/<case>/<run>/result.json",
+      "gpu_telemetry": "artifacts/distributed/telemetry/tp4_all.csv"
+    },
+    {
+      "profile": "dp2_replicas_01",
+      "devices": 2,
+      "serving_result": "artifacts/benchmarks/serving/<case>/<run>/result.json",
+      "gpu_telemetry": "artifacts/distributed/telemetry/dp2_replicas_01.csv"
+    }
+  ],
+  "communication_context": {
+    "note": "Collective microbenchmarks characterize the topology but are not equal to model-level communication time.",
+    "artifacts": [
+      "artifacts/distributed/nccl/same_numa_01/all_reduce_64mib.json",
+      "artifacts/distributed/nccl/cross_numa_02/all_reduce_64mib.json"
+    ]
+  }
+}
