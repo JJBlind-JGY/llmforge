@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "systems": [
+    {
+      "name": "vLLM",
+      "role": "primary engine",
+      "deploy": true,
+      "study": [
+        "unified scheduler",
+        "paged KV",
+        "prefix caching",
+        "chunked prefill",
+        "distributed serving"
+      ]
+    },
+    {
+      "name": "SGLang",
+      "role": "second engine / cross-engine validation",
+      "deploy": true,
+      "study": [
+        "radix-style prefix reuse",
+        "scheduler",
+        "PD disaggregation",
+        "Mooncake/NIXL KV transfer"
+      ]
+    },
+    {
+      "name": "Mooncake",
+      "role": "KV transfer / storage architecture study",
+      "deploy": false,
+      "study": [
+        "transfer engine",
+        "distributed KV",
+        "SGLang integration",
+        "vLLM integration"
+      ]
+    },
+    {
+      "name": "NVIDIA Dynamo",
+      "role": "distributed inference architecture study",
+      "deploy": false,
+      "study": [
+        "frontend/router",
+        "KV-aware routing",
+        "PD disaggregation",
+        "backend interoperability"
+      ]
+    },
+    {
+      "name": "llm-d",
+      "role": "Kubernetes-native inference architecture study",
+      "deploy": false,
+      "study": [
+        "Router / EPP",
+        "InferencePool",
+        "KV-aware routing",
+        "disaggregation",
+        "autoscaling"
+      ]
+    }
+  ]
+}
