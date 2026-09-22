@@ -1,0 +1,16 @@
+{
+  "vllm_results": [
+    "artifacts/benchmarks/serving/<vllm_run1>/result.json",
+    "artifacts/benchmarks/serving/<vllm_run2>/result.json",
+    "artifacts/benchmarks/serving/<vllm_run3>/result.json"
+  ],
+  "sglang_results": [
+    "artifacts/benchmarks/serving/<sglang_run1>/result.json",
+    "artifacts/benchmarks/serving/<sglang_run2>/result.json",
+    "artifacts/benchmarks/serving/<sglang_run3>/result.json"
+  ],
+  "notes": [
+    "All runs must use the same LLMForge M3 client and workload.",
+    "Do not compare engine-native benchmark output directly against M3 metrics unless the measurement boundary is explicitly normalized."
+  ]
+}
