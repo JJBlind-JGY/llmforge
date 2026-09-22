@@ -1,0 +1,4 @@
+{"case_id":"short_fact","messages":[{"role":"user","content":"Reply with only the number: what is 7 + 5?"}]}
+{"case_id":"copy_string","messages":[{"role":"user","content":"Repeat exactly this string and nothing else: LLMFORGE-M7-CHECK"}]}
+{"case_id":"short_explanation","messages":[{"role":"user","content":"In one sentence, explain what an LLM KV cache stores."}]}
+{"case_id":"structured","messages":[{"role":"user","content":"Return exactly three comma-separated integers: 2, 4, 8"}]}
