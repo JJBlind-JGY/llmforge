@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "pinned_engine": "vLLM 0.29.0",
+  "audit_rule": "Re-audit upstream source/docs before promoting any candidate. A feature already supported as a normal engine knob is not a headline M7 optimization by itself.",
+  "candidates": [
+    {
+      "candidate_id": "adaptive_mixed_batch_budget",
+      "title": "Adaptive mixed prefill/decode token budget",
+      "area": "prefill_decode_interference",
+      "classification": "main_candidate",
+      "implementation": "llmforge.optimization.candidates.vllm_adaptive_budget.AdaptiveBudgetScheduler",
+      "current_upstream_controls": [
+        "max_num_batched_tokens",
+        "max_num_scheduled_tokens",
+        "enable_chunked_prefill",
+        "long_prefill_token_threshold"
+      ],
+      "why_not_parameter_only": "The candidate changes the effective scheduling budget per engine step using live mixed-batch state instead of choosing one static engine argument.",
+      "evidence_needed": [
+        "mixed long-prefill/decode workload reproduced >=3 times",
+        "M4 scheduled prompt/output-token trace",
+        "client TTFT/TPOT P99",
+        "correctness probe",
+        "throughput guardrail"
+      ],
+      "notes": [
+        "Reference implementation is code-ready but not selected.",
+        "Do not claim benefit before the M7 selection gate passes."
+      ]
+    },
+    {
+      "candidate_id": "priority_aging",
+      "title": "Priority scheduling with wait-time aging",
+      "area": "scheduler_fairness",
+      "classification": "main_candidate",
+      "implementation": null,
+      "current_upstream_controls": [
+        "scheduling_policy=priority"
+      ],
+      "why_not_parameter_only": "Would dynamically change effective priority with waiting time to bound starvation rather than only enabling the existing static priority policy.",
+      "evidence_needed": [
+        "priority/starvation workload",
+        "per-request queue wait distribution",
+        "fairness metric",
+        "tail-latency and throughput guardrails"
+      ],
+      "notes": [
+        "No runtime implementation is committed until starvation is observed and the source audit confirms a real gap."
+      ]
+    },
+    {
+      "candidate_id": "kv_watermark_tuning",
+      "title": "Static KV watermark tuning",
+      "area": "kv_cache_pressure",
+      "classification": "upstream_equivalent",
+      "implementation": null,
+      "current_upstream_controls": [
+        "watermark",
+        "scheduler_reserve_full_isl"
+      ],
+      "why_not_parameter_only": "",
+      "evidence_needed": [],
+      "notes": [
+        "Useful baseline/control, but not a main M7 contribution."
+      ]
+    },
+    {
+      "candidate_id": "queued_token_cap_tuning",
+      "title": "Static queued-token admission cap",
+      "area": "kv_cache_pressure",
+      "classification": "upstream_equivalent",
+      "implementation": null,
+      "current_upstream_controls": [
+        "max_num_queued_tokens",
+        "max_num_queued_reqs"
+      ],
+      "why_not_parameter_only": "",
+      "evidence_needed": [],
+      "notes": [
+        "Useful QoS baseline/control, not a new optimization."
+      ]
+    },
+    {
+      "candidate_id": "static_token_budget_sweep",
+      "title": "Static scheduler token-budget sweep",
+      "area": "prefill_decode_interference",
+      "classification": "baseline_control",
+      "implementation": null,
+      "current_upstream_controls": [
+        "max_num_batched_tokens",
+        "max_num_scheduled_tokens"
+      ],
+      "why_not_parameter_only": "",
+      "evidence_needed": [
+        "same workload across several static budgets"
+      ],
+      "notes": [
+        "Required control for any adaptive-budget claim."
+      ]
+    },
+    {
+      "candidate_id": "topology_aware_placement",
+      "title": "Topology-aware tensor-parallel placement",
+      "area": "multi_gpu_communication",
+      "classification": "supporting_system",
+      "implementation": null,
+      "current_upstream_controls": [
+        "CUDA_VISIBLE_DEVICES",
+        "tensor_parallel_size"
+      ],
+      "why_not_parameter_only": "Can be a deployment/system optimization if M5 evidence shows topology-sensitive communication behavior, but it is not automatically the headline M7 algorithm.",
+      "evidence_needed": [
+        "M5 same-NUMA vs cross-NUMA serving runs",
+        "NCCL sweep",
+        "model-level communication profile"
+      ],
+      "notes": [
+        "Retain as a system-level candidate if communication is the measured bottleneck."
+      ]
+    }
+  ]
+}
