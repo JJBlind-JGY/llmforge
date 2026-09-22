@@ -1,0 +1,35 @@
+name: cpu-infra-ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  infra:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.2.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Create isolated CPU environment
+        run: |
+          uv venv --python 3.12
+          uv pip install -e . --no-deps
+          uv pip install pytest ruff
+
+      - name: Ruff format check
+        run: uv run --no-sync ruff format --check .
+
+      - name: Ruff lint
+        run: uv run --no-sync ruff check .
+
+      - name: Pure-Python infra tests
+        run: |
+          uv run --no-sync pytest             tests/telemetry             tests/production             tests/runtime             tests/distributed

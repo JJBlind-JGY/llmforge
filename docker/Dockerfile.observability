@@ -1,0 +1,27 @@
+FROM python:3.12-slim
+
+WORKDIR /opt/llmforge
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+COPY pyproject.toml README.md ./
+COPY src ./src
+COPY scripts ./scripts
+COPY configs ./configs
+
+RUN python -m pip install --no-cache-dir -e . --no-deps
+
+EXPOSE 9108
+
+HEALTHCHECK --interval=10s --timeout=3s --retries=3   CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9108/health/live', timeout=2)"
+
+ENTRYPOINT [
+  "python",
+  "scripts/production/run_observability_sidecar.py"
+]
+
+CMD [
+  "--config",
+  "configs/production/m6_observability.json"
+]
