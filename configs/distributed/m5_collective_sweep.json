@@ -1,0 +1,22 @@
+{
+  "collectives": [
+    "all_reduce",
+    "all_gather",
+    "reduce_scatter"
+  ],
+  "message_mib": [
+    1,
+    4,
+    16,
+    64,
+    256
+  ],
+  "dtype": "float32",
+  "warmups": 10,
+  "iterations": 50,
+  "notes": [
+    "message_mib follows NCCL-tests payload S semantics.",
+    "Run same-NUMA and cross-NUMA GPU pairs separately.",
+    "Do not change NCCL tuning environment variables in baseline."
+  ]
+}
