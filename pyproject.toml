@@ -71,6 +71,9 @@ name = "pytorch-cu130"
 url = "https://download.pytorch.org/whl/cu130"
 explicit = true
 
+[tool.ruff.lint.per-file-ignores]
+"scripts/**/*.py" = ["EXE001"]
+
 [build-system]
 requires = ["uv_build>=0.12.10,<0.13.0"]
 build-backend = "uv_build"
