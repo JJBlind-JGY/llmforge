@@ -142,7 +142,7 @@ python scripts/distributed/validate_inference_profiles.py
 Print exact server commands:
 
 ```bash
-python scripts/distributed/print_inference_commands.py   --hf-home "$HOME/workspace/.cache/huggingface"
+python scripts/distributed/print_inference_commands.py   --hf-home "$HF_HOME"
 ```
 
 Mandatory profiles:

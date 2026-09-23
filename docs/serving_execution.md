@@ -66,7 +66,7 @@ configs/serving/qwen3_8b_vllm_prefix_cache.json
 Print the exact launch command:
 
 ```bash
-python scripts/print_vllm_server_command.py   --config configs/serving/qwen3_8b_vllm_baseline.json   --gpu 3   --hf-home "$HOME/workspace/.cache/huggingface"
+python scripts/print_vllm_server_command.py   --config configs/serving/qwen3_8b_vllm_baseline.json   --gpu 0   --hf-home "$HF_HOME"
 ```
 
 ## Dry-run a suite group

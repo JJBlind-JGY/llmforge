@@ -51,13 +51,13 @@ claim is accepted.
 Print launch commands:
 
 ```bash
-python scripts/engines/print_engine_launch.py   --config configs/engines/m8_cross_engine.json   --engine vllm   --hf-home "$HOME/workspace/.cache/huggingface"
+python scripts/engines/print_engine_launch.py   --config configs/engines/m8_cross_engine.json   --engine vllm   --hf-home "$HF_HOME"
 ```
 
 and:
 
 ```bash
-python scripts/engines/print_engine_launch.py   --config configs/engines/m8_cross_engine.json   --engine sglang   --hf-home "$HOME/workspace/.cache/huggingface"
+python scripts/engines/print_engine_launch.py   --config configs/engines/m8_cross_engine.json   --engine sglang   --hf-home "$HF_HOME"
 ```
 
 Probe each engine before benchmarking:

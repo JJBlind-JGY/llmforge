@@ -459,7 +459,7 @@ These conclusions are valuable engineering evidence.
 After freezing an experiment, print the exact command:
 
 ```bash
-python scripts/optimization/print_experiment_arm_command.py   --experiment artifacts/optimization/adaptive_budget_v1/experiment.json   --arm baseline   --gpus 3   --hf-home "$HOME/workspace/.cache/huggingface"
+python scripts/optimization/print_experiment_arm_command.py   --experiment artifacts/optimization/adaptive_budget_v1/experiment.json   --arm baseline   --gpus 0   --hf-home "$HF_HOME"
 ```
 
 Then repeat with:
