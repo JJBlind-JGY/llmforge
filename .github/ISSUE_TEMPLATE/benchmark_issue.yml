@@ -1,0 +1,114 @@
+name: Benchmark / performance issue
+description: Report a reproducible performance regression or benchmark question.
+title: "[Perf] "
+labels:
+  - performance
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Performance claims need a workload, environment, raw evidence, and a
+        clear measurement boundary.
+
+  - type: input
+    id: commit
+    attributes:
+      label: Git commit
+      placeholder: d5889ba...
+    validations:
+      required: true
+
+  - type: textarea
+    id: hardware
+    attributes:
+      label: Hardware
+      placeholder: |
+        GPU model/count:
+        CPU:
+        NUMA/topology notes:
+    validations:
+      required: true
+
+  - type: textarea
+    id: software
+    attributes:
+      label: Software environment
+      placeholder: |
+        OS:
+        Driver:
+        CUDA toolkit/runtime:
+        Python:
+        PyTorch:
+        vLLM/SGLang:
+    validations:
+      required: true
+
+  - type: textarea
+    id: model
+    attributes:
+      label: Model
+      placeholder: |
+        Repository/model:
+        Revision:
+        Dtype:
+        Context length:
+    validations:
+      required: true
+
+  - type: textarea
+    id: workload
+    attributes:
+      label: Workload
+      placeholder: |
+        Prompt length/distribution:
+        Output length/distribution:
+        Concurrency:
+        Request rate / arrival process:
+        Shared-prefix ratio:
+        Cache/scheduler configuration:
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed metrics
+      description: Include repetitions and percentiles when applicable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Raw artifact / profiler evidence
+      description: Link or attach sanitized evidence. Do not include secrets.
+    validations:
+      required: false
+
+  - type: textarea
+    id: interpretation
+    attributes:
+      label: Current interpretation
+      description: State whether this is an observation, hypothesis, or confirmed mechanism.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I identified the measurement boundary.
+          required: true
+        - label: I did not report only the single best run.
+          required: true
+        - label: I removed private machine identifiers and secrets.
+          required: true

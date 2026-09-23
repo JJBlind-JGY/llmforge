@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/JJBlind-JGY/llmforge/blob/main/docs/index.md
+    about: Start with the public documentation and learning path.
+  - name: Security policy
+    url: https://github.com/JJBlind-JGY/llmforge/blob/main/SECURITY.md
+    about: Do not disclose sensitive vulnerabilities in a public issue.

@@ -1,0 +1,59 @@
+name: Feature request
+description: Propose a focused improvement that fits LLMForge's scope.
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What systems/engineering problem should this solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed approach
+      description: Describe the smallest useful implementation.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Project area
+      options:
+        - GPU / CUDA / Triton
+        - Transformer runtime
+        - Serving
+        - Scheduler / KV
+        - Distributed inference
+        - Observability
+        - Optimization
+        - Cross-engine validation
+        - Documentation / developer experience
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Why this belongs in LLMForge
+      description: |
+        Explain how the feature supports the project's inference/performance
+        engineering goals rather than simply increasing feature count.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I reviewed DESIGN.md and the project non-goals.
+          required: true
+        - label: I searched for an existing issue or equivalent upstream feature.
+          required: true
