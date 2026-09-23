@@ -13,7 +13,7 @@
       "port": 8000,
       "tensor_parallel_size": 1,
       "data_parallel_size": 1,
-      "cuda_visible_devices": "3",
+      "cuda_visible_devices": "0",
       "enable_prefix_caching": false,
       "enable_chunked_prefill": true
     },
@@ -21,7 +21,7 @@
       "host": "127.0.0.1",
       "port": 30000,
       "tensor_parallel_size": 1,
-      "cuda_visible_devices": "3",
+      "cuda_visible_devices": "0",
       "mem_fraction_static": 0.8,
       "disable_radix_cache": true,
       "context_length": 8192

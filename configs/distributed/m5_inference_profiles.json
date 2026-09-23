@@ -28,7 +28,7 @@
       "pipeline_parallel_size": 1,
       "data_parallel_size": 1,
       "optional": false,
-      "note": "GPU0/1 share NUMA0 on the primary 4x4090 server."
+      "note": "Example 2-GPU placement. Validate actual PCIe/NUMA topology before use."
     },
     {
       "name": "tp2_cross_numa_02",
