@@ -115,7 +115,7 @@ def _check_pyproject(repo_root: Path) -> AuditCheck:
         )
 
     required = {
-        "name": "llmforge-infra",
+        "name": "llmforge",
         "readme": "README.md",
         "license": "Apache-2.0",
     }

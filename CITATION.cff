@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use LLMForge Infra in research or teaching, please cite this software."
+title: "LLMForge Infra"
+type: software
+version: "0.1.0-alpha.1"
+date-released: 2026-09-23
+authors:
+  - family-names: "JJBlind"
+repository-code: "https://github.com/JJBlind-JGY/llmforge"
+url: "https://github.com/JJBlind-JGY/llmforge"
+license: Apache-2.0
+keywords:
+  - llm-inference
+  - ai-infrastructure
+  - cuda
+  - triton
+  - vllm
+  - sglang
+  - nccl
+  - performance-engineering
+  - benchmarking
+  - observability

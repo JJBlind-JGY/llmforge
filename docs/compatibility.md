@@ -22,7 +22,7 @@ corresponding runtime has been validated.
 | Version control | Git |
 | CPU-side tests | no GPU required |
 
-The Python distribution is `llmforge-infra`; the import package remains:
+The Python distribution is `llmforge`; the import package remains:
 
 ```python
 import llmforge

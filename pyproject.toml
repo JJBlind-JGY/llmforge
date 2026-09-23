@@ -1,6 +1,6 @@
 [project]
 name = "llmforge"
-version = "0.1.0"
+version = "0.1.0a1"
 description = "Evidence-driven LLM inference infrastructure and performance engineering toolkit"
 readme = "README.md"
 authors = [

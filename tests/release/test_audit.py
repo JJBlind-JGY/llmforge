@@ -71,7 +71,7 @@ def create_release_surface(root: Path) -> None:
         root / "pyproject.toml",
         """
 [project]
-name = "llmforge-infra"
+name = "llmforge"
 version = "0.1.0a1"
 readme = "README.md"
 license = "Apache-2.0"
