@@ -1,0 +1,17 @@
+.git
+.github
+.venv
+.wheel-smoke
+__pycache__
+.pytest_cache
+.ruff_cache
+.mypy_cache
+artifacts
+dist
+build
+*.egg-info
+*.ncu-rep
+*.nsys-rep
+*.pyc
+.env
+.env.*

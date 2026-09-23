@@ -4,31 +4,59 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  infra:
+  cpu:
+    name: CPU tests and package build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v10.2.0
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
+          version: "0.12.17"
           python-version: "3.12"
           enable-cache: true
 
-      - name: Create isolated CPU environment
-        run: |
-          uv venv --python 3.12
-          uv pip install -e . --no-deps
-          uv pip install pytest ruff
+      - name: Sync development environment
+        run: uv sync --frozen --group dev
 
       - name: Ruff format check
-        run: uv run --no-sync ruff format --check .
+        run: uv run --frozen ruff format --check .
 
       - name: Ruff lint
-        run: uv run --no-sync ruff check .
+        run: uv run --frozen ruff check .
 
       - name: Unit tests
-        run: uv run --no-sync pytest -q
+        run: uv run --frozen pytest -q
+
+      - name: Build source distribution and wheel
+        run: uv build
+
+      - name: Smoke-test built wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          wheel_path="$(find dist -maxdepth 1 -name '*.whl' -print -quit)"
+          test -n "${wheel_path}"
+
+          uv venv .wheel-smoke --python 3.12
+          uv pip install --python .wheel-smoke/bin/python "${wheel_path}"
+
+          .wheel-smoke/bin/python -c \
+            "import llmforge; print('llmforge version:', llmforge.__version__)"
+
+          .wheel-smoke/bin/llmforge-env \
+            --role ci-wheel-smoke \
+            >/dev/null
