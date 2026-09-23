@@ -1,0 +1,16 @@
+{
+  "observation_id": "synthetic_mixed_serving_example",
+  "workload_id": "synthetic_cpu_only_demo",
+  "hypothesis": "Synthetic example only: demonstrate how serving and runtime evidence are combined into one observation sheet.",
+  "serving_results": [
+    "examples/artifacts/m7/serving_result.json"
+  ],
+  "runtime_summary": "examples/artifacts/m7/runtime_summary.json",
+  "distributed_analysis": null,
+  "telemetry_status": null,
+  "profiler_artifacts": [],
+  "notes": [
+    "Synthetic example; not a performance result.",
+    "No optimization candidate should be selected from this data."
+  ]
+}

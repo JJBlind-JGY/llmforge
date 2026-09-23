@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "example": true,
+  "synthetic": true,
+  "engine_label": "vllm-synthetic",
+  "run": 3,
+  "summary": {
+    "request_throughput_rps": 7.9,
+    "output_throughput_tok_s": 127.0,
+    "ttft_ms": {
+      "p50": 41.0,
+      "p99": 122.0
+    },
+    "tpot_ms": {
+      "p50": 20.5,
+      "p99": 41.0
+    },
+    "e2e_ms": {
+      "p50": 405.0,
+      "p99": 810.0
+    }
+  }
+}

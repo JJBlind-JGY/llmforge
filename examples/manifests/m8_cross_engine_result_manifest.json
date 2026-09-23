@@ -1,0 +1,16 @@
+{
+  "vllm_results": [
+    "examples/artifacts/m8/vllm/run1.json",
+    "examples/artifacts/m8/vllm/run2.json",
+    "examples/artifacts/m8/vllm/run3.json"
+  ],
+  "sglang_results": [
+    "examples/artifacts/m8/sglang/run1.json",
+    "examples/artifacts/m8/sglang/run2.json",
+    "examples/artifacts/m8/sglang/run3.json"
+  ],
+  "notes": [
+    "Synthetic CPU-only example.",
+    "These values are not measured vLLM/SGLang performance."
+  ]
+}

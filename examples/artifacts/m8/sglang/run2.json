@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "example": true,
+  "synthetic": true,
+  "engine_label": "sglang-synthetic",
+  "run": 2,
+  "summary": {
+    "request_throughput_rps": 7.8,
+    "output_throughput_tok_s": 124.0,
+    "ttft_ms": {
+      "p50": 41.0,
+      "p99": 124.0
+    },
+    "tpot_ms": {
+      "p50": 20.8,
+      "p99": 41.5
+    },
+    "e2e_ms": {
+      "p50": 410.0,
+      "p99": 820.0
+    }
+  }
+}
