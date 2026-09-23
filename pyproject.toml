@@ -1,13 +1,46 @@
 [project]
 name = "llmforge"
 version = "0.1.0"
-description = "Production-oriented LLM inference infrastructure and performance engineering project"
+description = "Evidence-driven LLM inference infrastructure and performance engineering toolkit"
 readme = "README.md"
 authors = [
-    { name = "JJBlind", email = "jjblind@163.com" }
+    { name = "JJBlind" }
 ]
 requires-python = ">=3.12,<3.13"
 dependencies = []
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+
+keywords = [
+    "llm",
+    "llm-inference",
+    "ai-infrastructure",
+    "cuda",
+    "triton",
+    "vllm",
+    "sglang",
+    "nccl",
+    "gpu",
+    "benchmarking",
+    "performance-engineering",
+    "observability",
+]
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/JJBlind-JGY/llmforge"
+Repository = "https://github.com/JJBlind-JGY/llmforge"
+Issues = "https://github.com/JJBlind-JGY/llmforge/issues"
 
 [project.scripts]
 llmforge-env = "llmforge.environment:main"
@@ -20,6 +53,12 @@ gpu = [
 
 serving = [
     "httpx>=0.28,<1",
+]
+
+observability = [
+    "opentelemetry-api>=1.30,<2",
+    "opentelemetry-sdk>=1.30,<2",
+    "opentelemetry-exporter-otlp-proto-http>=1.30,<2",
 ]
 
 [tool.uv.sources]
