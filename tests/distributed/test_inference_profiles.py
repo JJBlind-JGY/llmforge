@@ -5,7 +5,6 @@ from llmforge.distributed.inference import (
     validate_parallel_profile,
 )
 
-
 MODEL = ModelParallelShape(
     num_attention_heads=32,
     num_key_value_heads=8,

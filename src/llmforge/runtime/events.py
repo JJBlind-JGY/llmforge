@@ -49,7 +49,7 @@ class RuntimeEvent:
         return data
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "RuntimeEvent":
+    def from_dict(cls, data: dict[str, Any]) -> RuntimeEvent:
         return cls(
             schema_version=int(data["schema_version"]),
             kind=RuntimeEventKind(data["kind"]),

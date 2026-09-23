@@ -1,8 +1,10 @@
 from __future__ import annotations
-from dataclasses import dataclass, asdict
+
+from collections.abc import Iterable
+from dataclasses import asdict, dataclass
 from math import ceil
 from statistics import mean
-from collections.abc import Iterable
+
 from llmforge.serving.schema import RequestResult
 
 

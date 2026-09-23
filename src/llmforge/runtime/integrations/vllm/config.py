@@ -17,7 +17,7 @@ class VLLMTraceConfig:
     drop_on_full: bool
 
     @classmethod
-    def from_environment(cls) -> "VLLMTraceConfig":
+    def from_environment(cls) -> VLLMTraceConfig:
         mode = os.environ.get(
             "LLMFORGE_RUNTIME_TRACE_MODE",
             "buffered",

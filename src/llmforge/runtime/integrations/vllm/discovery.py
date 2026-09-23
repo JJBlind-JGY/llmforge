@@ -4,9 +4,9 @@ import importlib
 import importlib.metadata
 import importlib.util
 import inspect
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Iterable
 
 
 @dataclass(frozen=True)

@@ -8,7 +8,6 @@ from pathlib import Path
 from statistics import median
 from typing import Any
 
-
 _METRIC_DIRECTIONS = {
     "request_throughput_rps": "maximize",
     "output_throughput_tok_s": "maximize",

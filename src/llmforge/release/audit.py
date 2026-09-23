@@ -6,7 +6,6 @@ import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-
 _REQUIRED_PATHS = (
     "README.md",
     "DESIGN.md",

@@ -13,7 +13,6 @@ from llmforge.distributed.telemetry import (
     parse_nvidia_smi_sample,
 )
 
-
 QUERY = "timestamp,index,utilization.gpu,memory.used,memory.total,power.draw"
 
 

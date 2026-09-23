@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import json
 import shlex
 from dataclasses import dataclass

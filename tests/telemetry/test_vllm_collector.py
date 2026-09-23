@@ -3,7 +3,6 @@ from llmforge.telemetry.collectors.vllm import (
     snapshot_from_prometheus,
 )
 
-
 RAW = """
 # HELP vllm:num_requests_running x
 # TYPE vllm:num_requests_running gauge

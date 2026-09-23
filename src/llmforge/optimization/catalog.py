@@ -31,7 +31,7 @@ class CandidateCatalogEntry:
     def from_dict(
         cls,
         raw: dict,
-    ) -> "CandidateCatalogEntry":
+    ) -> CandidateCatalogEntry:
         return cls(
             candidate_id=str(raw["candidate_id"]),
             title=str(raw["title"]),

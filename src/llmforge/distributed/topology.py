@@ -8,7 +8,6 @@ import re
 from dataclasses import asdict, dataclass
 from itertools import combinations
 
-
 _GPU_RE = re.compile(r"GPU\d+")
 
 

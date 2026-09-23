@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from llmforge.runtime.events import RuntimeEvent
+
 from .base import TraceRecorderStats
 
 
@@ -40,7 +41,7 @@ class SyncJsonlTraceRecorder:
     def stats(self) -> TraceRecorderStats:
         return TraceRecorderStats(self._submitted, self._written, 0)
 
-    def __enter__(self) -> "SyncJsonlTraceRecorder":
+    def __enter__(self) -> SyncJsonlTraceRecorder:
         return self
 
     def __exit__(self, exc_type, exc, traceback) -> None:

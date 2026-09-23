@@ -4,7 +4,6 @@ from llmforge.distributed.topology import (
     parse_nvidia_smi_topology,
 )
 
-
 INVENTORY = """
 0, NVIDIA GeForce RTX 4090, GPU-a, 00000000:01:00.0, 24564
 1, NVIDIA GeForce RTX 4090, GPU-b, 00000000:02:00.0, 24564

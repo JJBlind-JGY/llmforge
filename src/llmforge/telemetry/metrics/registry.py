@@ -8,14 +8,13 @@ from __future__ import annotations
 
 import math
 import threading
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from .schema import (
     MetricKind,
     MetricSpec,
 )
-
 
 LabelValues = tuple[tuple[str, str], ...]
 

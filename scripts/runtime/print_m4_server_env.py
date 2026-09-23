@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, shlex
+
+import argparse
+import shlex
 
 
 def main() -> None:

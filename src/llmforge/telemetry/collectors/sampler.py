@@ -11,7 +11,6 @@ from llmforge.telemetry.metrics import (
     MetricRegistry,
 )
 
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -71,7 +70,7 @@ class PeriodicCollectorRunner:
         for collector in self.collectors:
             try:
                 collector.collect(self.registry)
-            except Exception:  # noqa: BLE001
+            except Exception:
                 self.registry.inc_counter(
                     "llmforge_observer_error_total",
                     labels={

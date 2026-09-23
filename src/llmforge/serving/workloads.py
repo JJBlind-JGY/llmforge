@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 import random
 from collections.abc import Sequence
+
 from llmforge.serving.schema import RequestSpec
 
 

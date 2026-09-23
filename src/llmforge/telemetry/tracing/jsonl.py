@@ -166,7 +166,7 @@ class BufferedJsonlSpanExporter:
 
     def __enter__(
         self,
-    ) -> "BufferedJsonlSpanExporter":
+    ) -> BufferedJsonlSpanExporter:
         return self
 
     def __exit__(

@@ -18,12 +18,11 @@ import time
 from pathlib import Path
 from typing import Any
 
-from llmforge.runtime.integrations.vllm.tracing_scheduler import (
-    TracingScheduler,
-)
-
 from llmforge.optimization.decision_trace import (
     BufferedDecisionRecorder,
+)
+from llmforge.runtime.integrations.vllm.tracing_scheduler import (
+    TracingScheduler,
 )
 
 from .adaptive_budget import (

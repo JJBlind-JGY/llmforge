@@ -1,4 +1,6 @@
-import torch
+import pytest
+
+torch = pytest.importorskip("torch")
 
 from llmforge.model_execution.mini_decoder import (
     MiniDecoderConfig,

@@ -8,11 +8,10 @@ import os
 import platform
 import subprocess
 import sys
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Mapping
-
 
 _SAFE_ENV_KEYS = (
     "CUDA_VISIBLE_DEVICES",

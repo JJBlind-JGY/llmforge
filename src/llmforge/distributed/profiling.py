@@ -8,7 +8,6 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
-
 _COLLECTIVE_TOKENS = (
     "nccl",
     "all_reduce",

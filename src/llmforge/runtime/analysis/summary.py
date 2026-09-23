@@ -1,7 +1,10 @@
 from __future__ import annotations
+
 from collections import defaultdict
 from dataclasses import asdict, dataclass
+
 from llmforge.runtime.events import RuntimeEvent, RuntimeEventKind
+
 from .stats import distribution
 
 

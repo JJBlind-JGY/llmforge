@@ -6,6 +6,7 @@ import threading
 from pathlib import Path
 
 from llmforge.runtime.events import RuntimeEvent
+
 from .base import TraceRecorderStats
 
 _STOP = object()
@@ -126,7 +127,7 @@ class BufferedJsonlTraceRecorder:
         if self._worker_error is not None:
             raise RuntimeError("runtime trace writer failed.") from self._worker_error
 
-    def __enter__(self) -> "BufferedJsonlTraceRecorder":
+    def __enter__(self) -> BufferedJsonlTraceRecorder:
         return self
 
     def __exit__(self, exc_type, exc, traceback) -> None:

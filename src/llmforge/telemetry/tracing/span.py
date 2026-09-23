@@ -4,16 +4,16 @@ from __future__ import annotations
 
 import secrets
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import asdict, dataclass
-from typing import Any, Iterator, Protocol
+from typing import Any, Protocol
 
 from llmforge.telemetry.context import (
     current_request_context,
     new_trace_id,
 )
-
 
 _CURRENT_SPAN_ID: ContextVar[str | None] = ContextVar(
     "llmforge_current_span_id",

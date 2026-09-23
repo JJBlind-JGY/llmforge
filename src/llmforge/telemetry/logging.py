@@ -12,7 +12,6 @@ from .context import (
     current_request_context,
 )
 
-
 _RESERVED_RECORD_KEYS = {
     "name",
     "msg",

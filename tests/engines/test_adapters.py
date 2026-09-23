@@ -1,6 +1,5 @@
 from llmforge.engines import create_engine_adapter
 
-
 BASE = {
     "model": "Qwen/Qwen3-8B",
     "revision": "abc",

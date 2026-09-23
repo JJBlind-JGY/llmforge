@@ -127,7 +127,6 @@ class ObservabilityControlPlane:
             ) -> None:
                 del format
                 del args
-                return
 
         self._server = ThreadingHTTPServer(
             (

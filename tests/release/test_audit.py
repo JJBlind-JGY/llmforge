@@ -3,7 +3,6 @@ from pathlib import Path
 
 from llmforge.release import audit_release
 
-
 REQUIRED = (
     "README.md",
     "DESIGN.md",

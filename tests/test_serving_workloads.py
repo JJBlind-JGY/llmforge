@@ -1,8 +1,8 @@
 from llmforge.serving.workloads import (
-    fixed_workload,
-    shared_prefix_workload,
-    poisson_workload,
     burst_workload,
+    fixed_workload,
+    poisson_workload,
+    shared_prefix_workload,
 )
 
 VOCAB = 151936

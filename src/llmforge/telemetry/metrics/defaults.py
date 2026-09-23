@@ -8,7 +8,6 @@ from .schema import (
     MetricSpec,
 )
 
-
 _LATENCY_BUCKETS_S = (
     0.001,
     0.002,

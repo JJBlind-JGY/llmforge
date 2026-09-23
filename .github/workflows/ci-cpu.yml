@@ -30,6 +30,5 @@ jobs:
       - name: Ruff lint
         run: uv run --no-sync ruff check .
 
-      - name: Pure-Python infra tests
-        run: |
-          uv run --no-sync pytest             tests/telemetry             tests/production             tests/runtime             tests/distributed             tests/optimization             tests/engines             tests/release
+      - name: Unit tests
+        run: uv run --no-sync pytest -q

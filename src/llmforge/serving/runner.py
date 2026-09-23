@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 import asyncio
 import time
-from dataclasses import dataclass
 from collections.abc import Sequence
+from dataclasses import dataclass
+
 from .client import VLLMOpenAIClient
 from .metrics import BenchmarkSummary, summarize_results
 from .schema import RequestResult, RequestSpec

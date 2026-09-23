@@ -25,15 +25,14 @@ def test_nested_spans_share_trace_and_parent(
         with bind_request_context(
             request_id="req-1",
             trace_id="a" * 32,
-        ):
-            with manager.start_span("outer") as outer:
-                with manager.start_span("inner") as inner:
-                    inner.set_attribute(
-                        "tokens",
-                        32,
-                    )
+        ), manager.start_span("outer") as outer:
+            with manager.start_span("inner") as inner:
+                inner.set_attribute(
+                    "tokens",
+                    32,
+                )
 
-                assert inner.parent_span_id == outer.span_id
+            assert inner.parent_span_id == outer.span_id
 
         manager.flush()
 

@@ -4,7 +4,6 @@ import re
 from dataclasses import dataclass
 from enum import StrEnum
 
-
 _METRIC_NAME = re.compile(r"^[a-zA-Z_:][a-zA-Z0-9_:]*$")
 
 _LABEL_NAME = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")

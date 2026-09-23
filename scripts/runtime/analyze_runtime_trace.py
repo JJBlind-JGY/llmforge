@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, json
+
+import argparse
+import json
 from pathlib import Path
+
 from llmforge.runtime.analysis import summarize_runtime_trace
 from llmforge.runtime.trace import JsonlTraceReader
 

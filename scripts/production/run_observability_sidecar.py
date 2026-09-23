@@ -38,7 +38,6 @@ from llmforge.telemetry.metrics import (
     create_default_registry,
 )
 
-
 _LOGGER = logging.getLogger(__name__)
 
 

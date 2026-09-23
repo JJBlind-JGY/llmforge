@@ -22,7 +22,7 @@ class CorrectnessRecord:
     def from_dict(
         cls,
         raw: dict,
-    ) -> "CorrectnessRecord":
+    ) -> CorrectnessRecord:
         return cls(
             case_id=str(raw["case_id"]),
             prompt_sha256=str(raw["prompt_sha256"]),

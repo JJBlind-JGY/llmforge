@@ -14,7 +14,6 @@ from llmforge.telemetry.metrics import (
     MetricRegistry,
 )
 
-
 _QUERY = "timestamp,index,utilization.gpu,memory.used,memory.total,power.draw"
 
 

@@ -10,7 +10,6 @@ from llmforge.telemetry.metrics import (
     MetricRegistry,
 )
 
-
 _SAMPLE_RE = re.compile(
     r"^([a-zA-Z_:][a-zA-Z0-9_:]*)"
     r"(?:\{[^}]*\})?\s+"
