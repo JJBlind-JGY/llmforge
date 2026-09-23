@@ -24,6 +24,18 @@ def _get_json(
         )
 
 
+def _get_status(
+    url: str,
+    *,
+    timeout_s: float,
+) -> int:
+    with urllib.request.urlopen(
+        url,
+        timeout=timeout_s,
+    ) as response:
+        return int(response.status)
+
+
 def probe_engine(
     *,
     adapter: EngineAdapter,
@@ -37,19 +49,28 @@ def probe_engine(
 
     for path in adapter.health_paths():
         try:
-            status, payload = _get_json(
-                base_url.rstrip("/") + path,
-                timeout_s=timeout_s,
-            )
-
             if path == "/health":
-                health_status = status
+                health_status = _get_status(
+                    base_url.rstrip("/") + path,
+                    timeout_s=timeout_s,
+                )
 
-            if path == "/v1/models":
+            elif path == "/v1/models":
+                status, payload = _get_json(
+                    base_url.rstrip("/") + path,
+                    timeout_s=timeout_s,
+                )
                 model_status = status
                 data = payload.get("data", [])
                 models = tuple(
-                    str(item.get("id")) for item in data if item.get("id") is not None
+                    str(item["id"]) for item in data if item.get("id") is not None
+                )
+
+            else:
+                # 未知 path：保守起见按 JSON probe 处理，或按 adapter 契约扩展
+                status, _ = _get_json(
+                    base_url.rstrip("/") + path,
+                    timeout_s=timeout_s,
                 )
 
         except (
