@@ -1,10 +1,6 @@
-"""Open-source release readiness checks."""
+"""Open-source release and portfolio readiness checks."""
 
-from .audit import (
-    AuditCheck,
-    ReleaseAudit,
-    audit_release,
-)
+from .audit import AuditCheck, ReleaseAudit, audit_release
 
 __all__ = [
     "AuditCheck",
