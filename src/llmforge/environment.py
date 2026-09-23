@@ -286,7 +286,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--role",
-        choices=["local-dev", "gpu-server", "other"],
+        choices=["local-dev", "gpu-server", "ci-wheel-smoke", "other"],
         default="other",
     )
     parser.add_argument(
