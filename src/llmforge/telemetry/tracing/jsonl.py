@@ -7,6 +7,7 @@ import queue
 import threading
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Self
 
 from .span import SpanRecord
 
@@ -149,7 +150,7 @@ class BufferedJsonlSpanExporter:
                     finally:
                         self._queue.task_done()
 
-        except BaseException as exc:
+        except BaseException as exc:  # noqa: BLE001 — worker thread top-level guard
             self._error = exc
 
             while True:
@@ -166,7 +167,7 @@ class BufferedJsonlSpanExporter:
 
     def __enter__(
         self,
-    ) -> BufferedJsonlSpanExporter:
+    ) -> Self:
         return self
 
     def __exit__(

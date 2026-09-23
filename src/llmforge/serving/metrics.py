@@ -93,9 +93,7 @@ def summarize_results(
                 r.tpot_ms is None or r.tpot_ms > tpot_slo_ms
             ):
                 return False
-            if e2e_slo_ms is not None and r.e2e_ms > e2e_slo_ms:
-                return False
-            return True
+            return e2e_slo_ms is None or r.e2e_ms <= e2e_slo_ms
 
         good = sum(meets(r) for r in results)
         goodput = good / wall_time_s

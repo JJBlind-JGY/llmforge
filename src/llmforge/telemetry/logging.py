@@ -138,7 +138,7 @@ def configure_json_logging(
         numeric_level,
         int,
     ):
-        raise ValueError(f"Unsupported log level: {level!r}.")
+        raise TypeError(f"Unsupported log level type: {type(level).__name__}.")
 
     handler = logging.StreamHandler()
     handler.setFormatter(JsonFormatter())

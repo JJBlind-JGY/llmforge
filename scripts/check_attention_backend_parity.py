@@ -13,15 +13,15 @@ from llmforge.model_execution.mini_decoder import (
 def _make_pair_configs(
     num_kv_heads: int,
 ) -> tuple[MiniDecoderConfig, MiniDecoderConfig]:
-    common = dict(
-        vocab_size=256,
-        hidden_size=512,
-        intermediate_size=1024,
-        num_layers=4,
-        num_attention_heads=8,
-        num_key_value_heads=num_kv_heads,
-        max_sequence_length=512,
-    )
+    common = {
+        "vocab_size": 256,
+        "hidden_size": 512,
+        "intermediate_size": 1024,
+        "num_layers": 4,
+        "num_attention_heads": 8,
+        "num_key_value_heads": num_kv_heads,
+        "max_sequence_length": 512,
+    }
     return (
         MiniDecoderConfig(**common, attention_backend="naive"),
         MiniDecoderConfig(**common, attention_backend="sdpa"),

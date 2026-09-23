@@ -22,9 +22,11 @@ def render_multi_gpu_report(
     lines = [
         "# M5 Multi-GPU Inference Report",
         "",
-        "> Generated from real M3 serving artifacts. "
-        "Interpretation must be added only after "
-        "the matching topology/NCCL/profiler evidence exists.",
+        (
+            "> Generated from real M3 serving artifacts. "
+            "Interpretation must be added only after "
+            "the matching topology/NCCL/profiler evidence exists."
+        ),
         "",
         "## Baseline",
         "",

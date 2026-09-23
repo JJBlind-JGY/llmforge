@@ -24,12 +24,12 @@ def parse_shapes(raw: str) -> list[tuple[int, int]]:
 
 
 def build_workload(args):
-    common = dict(
-        seed=args.seed,
-        vocab_size=args.vocab_size,
-        token_low=args.token_low,
-        token_high=args.token_high,
-    )
+    common = {
+        "seed": args.seed,
+        "vocab_size": args.vocab_size,
+        "token_low": args.token_low,
+        "token_high": args.token_high,
+    }
     if args.workload == "fixed":
         return fixed_workload(
             num_requests=args.num_requests,

@@ -45,8 +45,10 @@ def render_report(artifacts: list[tuple[str, dict[str, Any]]]) -> str:
     chunks = [
         "# LLMForge M3 Serving Benchmark Results",
         "",
-        "> Generated from raw artifacts. Add causal interpretation only after "
-        "checking the actual server configuration, GPU state, and profiler/telemetry evidence.",
+        (
+            "> Generated from raw artifacts. Add causal interpretation only after "
+            "checking the actual server configuration, GPU state, and profiler/telemetry evidence."
+        ),
         "",
     ]
     for name, artifact in artifacts:

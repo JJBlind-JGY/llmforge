@@ -124,7 +124,7 @@ class BufferedDecisionRecorder:
                     finally:
                         self._queue.task_done()
 
-        except BaseException as exc:
+        except BaseException as exc:  # noqa: BLE001 — worker thread top-level guard
             self._error = exc
 
             while True:

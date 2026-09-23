@@ -185,7 +185,7 @@ def main() -> None:
         )
 
         @torch.inference_mode()
-        def prefill_operation() -> None:
+        def prefill_operation(prompt=prompt) -> None:
             model.forward_with_cache(prompt)
 
         warmup(
@@ -214,10 +214,13 @@ def main() -> None:
         kv_bytes = cache_storage_bytes(base_cache)
 
         @torch.inference_mode()
-        def decode_operation() -> None:
+        def decode_operation(
+            next_token=next_token,
+            base_cache=base_cache,
+        ) -> None:
             model.forward_with_cache(
                 next_token,
-                past_key_values=(base_cache),
+                past_key_values=base_cache,
             )
 
         warmup(
@@ -269,7 +272,9 @@ def main() -> None:
 
     for output_length in args.output_lengths:
 
-        def generation_operation() -> None:
+        def generation_operation(
+            output_length=output_length,
+        ) -> None:
             generate_cached(
                 model,
                 output_prompt,

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Self
 
 from llmforge.runtime.events import RuntimeEvent
 
@@ -41,7 +42,7 @@ class SyncJsonlTraceRecorder:
     def stats(self) -> TraceRecorderStats:
         return TraceRecorderStats(self._submitted, self._written, 0)
 
-    def __enter__(self) -> SyncJsonlTraceRecorder:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, exc_type, exc, traceback) -> None:

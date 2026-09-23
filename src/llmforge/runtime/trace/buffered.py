@@ -4,6 +4,7 @@ import json
 import queue
 import threading
 from pathlib import Path
+from typing import Self
 
 from llmforge.runtime.events import RuntimeEvent
 
@@ -113,7 +114,7 @@ class BufferedJsonlTraceRecorder:
                             pending = 0
                     finally:
                         self._queue.task_done()
-        except BaseException as exc:
+        except BaseException as exc:  # noqa: BLE001 — worker thread top-level guard
             self._worker_error = exc
             while True:
                 try:
@@ -127,7 +128,7 @@ class BufferedJsonlTraceRecorder:
         if self._worker_error is not None:
             raise RuntimeError("runtime trace writer failed.") from self._worker_error
 
-    def __enter__(self) -> BufferedJsonlTraceRecorder:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, exc_type, exc, traceback) -> None:

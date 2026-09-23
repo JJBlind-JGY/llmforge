@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import time
 from dataclasses import dataclass
+from itertools import pairwise
 
 from .schema import RequestResult, RequestSpec
 
@@ -104,7 +105,7 @@ class VLLMOpenAIClient:
             ttft = (arrivals[0] - dispatch) * 1000.0
             e2e = (end - dispatch) * 1000.0
             tpot = (e2e - ttft) / (len(arrivals) - 1) if len(arrivals) > 1 else None
-            itls = [(b - a) * 1000.0 for a, b in zip(arrivals, arrivals[1:])]
+            itls = [(b - a) * 1000.0 for a, b in pairwise(arrivals)]
 
             return RequestResult(
                 request_id=request.request_id,
@@ -121,7 +122,7 @@ class VLLMOpenAIClient:
                 status_code=status_code,
                 metadata=request.metadata,
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             end = time.perf_counter()
             return RequestResult(
                 request_id=request.request_id,

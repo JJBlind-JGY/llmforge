@@ -6,9 +6,6 @@ import asyncio
 import signal
 import threading
 from collections.abc import Awaitable
-from typing import TypeVar
-
-T = TypeVar("T")
 
 
 class CancellationToken:
@@ -32,7 +29,7 @@ class CancellationToken:
             raise asyncio.CancelledError
 
 
-async def run_with_timeout(
+async def run_with_timeout[T](
     awaitable: Awaitable[T],
     *,
     timeout_s: float,
