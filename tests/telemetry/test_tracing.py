@@ -22,10 +22,13 @@ def test_nested_spans_share_trace_and_parent(
     ) as exporter:
         manager = SpanManager(exporter)
 
-        with bind_request_context(
-            request_id="req-1",
-            trace_id="a" * 32,
-        ), manager.start_span("outer") as outer:
+        with (
+            bind_request_context(
+                request_id="req-1",
+                trace_id="a" * 32,
+            ),
+            manager.start_span("outer") as outer,
+        ):
             with manager.start_span("inner") as inner:
                 inner.set_attribute(
                     "tokens",
